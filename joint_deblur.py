@@ -16,18 +16,86 @@ joint_deblur.py — 用关节角数据去模糊
 
 import numpy as np
 import math
+from collections import namedtuple
 from apply_blur import pad_psf, create_motion_psf
 
 
 # ============================================================
-# 第一部分：Franka Panda 机器人运动学
+# 数据类型定义：可配置的机器人 & 相机参数
 # ============================================================
-# D-H 参数（修正版，与 v7.2.3 notebook 一致）
 
-DH_A = np.array([0, 0, 0, 0.0825, -0.0825, 0, 0])
-DH_ALPHA = np.array([-np.pi/2, np.pi/2, np.pi/2, -np.pi/2, np.pi/2, np.pi/2, 0])
-DH_D = np.array([0.333, 0, 0.316, 0, 0.384, 0, 0.088])
-DH_THETA_OFFSET = np.array([0, -np.pi/2, 0, -np.pi/2, 0, np.pi/2, np.pi/4])
+RobotConfig = namedtuple("RobotConfig", ["a", "alpha", "d", "theta_offset"])
+"""
+机器人 D-H 参数配置。
+  a (7,):       连杆长度
+  alpha (7,):   连杆扭角 (rad)
+  d (7,):       连杆偏距
+  theta_offset (7,):  关节零点偏移 (rad)
+"""
+
+HandEyeCalib = namedtuple("HandEyeCalib", ["R", "t"])
+"""
+手眼标定参数：相机坐标系 → 末端法兰坐标系的变换。
+  R (3,3):  R_he  旋转矩阵
+  t (3,):   t_he  平移向量 (m)
+"""
+
+
+# ============================================================
+# 预设机器人 D-H 参数
+# ============================================================
+
+# --- Franka Panda 标准 D-H（当前代码使用的参数） ---
+PANDA = RobotConfig(
+    a=np.array([0, 0, 0, 0.0825, -0.0825, 0, 0]),
+    alpha=np.array([-np.pi/2, np.pi/2, np.pi/2, -np.pi/2, np.pi/2, np.pi/2, 0]),
+    d=np.array([0.333, 0, 0.316, 0, 0.384, 0, 0.088]),
+    theta_offset=np.array([0, -np.pi/2, 0, -np.pi/2, 0, np.pi/2, np.pi/4]),
+)
+""" Franka Panda 7-DOF 机械臂标准 D-H 参数 """
+
+
+# ============================================================
+# 预设手眼标定参数
+# ============================================================
+
+# --- 简化近似版（代码中原先硬编码的默认值） ---
+PANDA_HAND_EYE_SIMPLE = HandEyeCalib(
+    R=np.array([[1, 0, 0], [0, 0, 1], [0, -1, 0]]),
+    t=np.array([0, 0, 0.05]),
+)
+"""
+简化的手眼标定（仅近似，用于测试）。
+  x_cam = x_ee,  y_cam = z_ee,  z_cam = -y_ee
+"""
+
+# --- DROID 数据集手腕相机实测手眼标定（左相机 17368348）---
+# 来自 DROID trajectory.h5 observation/camera_extrinsics/{serial}_left_gripper_offset
+DROID_HAND_EYE_LEFT = HandEyeCalib(
+    R=np.array([
+        [ 0.0166,  0.9463,  0.3229],
+        [-0.9991,  0.0030,  0.0427],
+        [ 0.0394, -0.3233,  0.9455],
+    ]),
+    t=np.array([-0.07808,  0.02325,  0.01505]),
+)
+""" DROID 数据集 wrist 左相机 hand-eye (serial=17368348) """
+
+# --- DROID 数据集手腕相机实测手眼标定（右相机 17368348）---
+DROID_HAND_EYE_RIGHT = HandEyeCalib(
+    R=np.array([
+        [ 0.0287,  0.9513,  0.3071],
+        [-0.9990,  0.0168,  0.0414],
+        [ 0.0343, -0.3079,  0.9508],
+    ]),
+    t=np.array([-0.07052, -0.04072,  0.02304]),
+)
+""" DROID 数据集 wrist 右相机 hand-eye (serial=17368348) """
+
+
+# ============================================================
+# 第一部分：机器人运动学 — 从 D-H 到正运动学 / 雅可比
+# ============================================================
 
 
 def dh_matrix(a, alpha, d, theta):
@@ -42,27 +110,44 @@ def dh_matrix(a, alpha, d, theta):
     ])
 
 
-def forward_kinematics(q):
+def forward_kinematics(q, robot=None):
     """
     正运动学：7 个关节角 → 末端位姿。
-    返回 4×4 齐次变换矩阵 T_ee。
+    
+    参数:
+        q (7,): 关节角（弧度）
+        robot (RobotConfig): 机器人 D-H 配置，默认 PANDA
+    
+    返回:
+        T_ee (4×4): 末端齐次变换矩阵
     """
+    if robot is None:
+        robot = PANDA
     T = np.eye(4)
     for i in range(7):
-        T_i = dh_matrix(DH_A[i], DH_ALPHA[i], DH_D[i], q[i] + DH_THETA_OFFSET[i])
+        T_i = dh_matrix(robot.a[i], robot.alpha[i], robot.d[i], q[i] + robot.theta_offset[i])
         T = T @ T_i
     return T
 
 
-def get_geometric_jacobian(q):
+def get_geometric_jacobian(q, robot=None):
     """
     几何雅可比矩阵 J(q)：关节角速度 → 末端速度。
-    返回 (J, T_list)，其中 T_list 存储每步的变换矩阵。
+    
+    参数:
+        q (7,): 关节角（弧度）
+        robot (RobotConfig): 机器人 D-H 配置，默认 PANDA
+    
+    返回:
+        J (6×7): 几何雅可比矩阵
+        T_list: 每步齐次变换矩阵列表
     """
+    if robot is None:
+        robot = PANDA
     T_list = [np.eye(4)]
     for i in range(7):
         T_list.append(T_list[-1] @ dh_matrix(
-            DH_A[i], DH_ALPHA[i], DH_D[i], q[i] + DH_THETA_OFFSET[i]))
+            robot.a[i], robot.alpha[i], robot.d[i], q[i] + robot.theta_offset[i]))
     
     T_ee = T_list[-1]
     o_n = T_ee[:3, 3]
@@ -76,21 +161,35 @@ def get_geometric_jacobian(q):
     return J, T_list
 
 
-def get_camera_velocity(q, q_dot):
+def get_camera_velocity(q, q_dot, hand_eye=None, robot=None):
     """
     关节角速度 → 相机在基座系中的速度。
     
-    相机安装在 Franka 末端，有固定偏移 t_he。
-    旋转矩阵 R_he 描述相机坐标系与末端坐标系的相对姿态。
+    相机安装在末端法兰上，通过手眼标定参数 R_he / t_he
+    将末端速度转换到相机坐标系。
     
-    相机速度 = R_he^T * v_ee + omega_ee × (R_he^T * t_he)
+    公式：
+      v_cam = R_he^T · v_ee + ω_ee × (R_he^T · t_he)
+      ω_cam = R_he^T · ω_ee
+    
+    参数:
+        q (7,): 关节角（弧度）
+        q_dot (7,): 关节角速度（弧度/秒）
+        hand_eye (HandEyeCalib): 手眼标定，默认 PANDA_HAND_EYE_SIMPLE
+        robot (RobotConfig): 机器人 D-H 配置，默认 PANDA
+    
+    返回:
+        v_cam (6,): [v_x, v_y, v_z, ω_x, ω_y, ω_z] 相机速度
     """
-    J, _ = get_geometric_jacobian(q)
+    if hand_eye is None:
+        hand_eye = PANDA_HAND_EYE_SIMPLE
+    if robot is None:
+        robot = PANDA
+    
+    J, _ = get_geometric_jacobian(q, robot=robot)
     v_ee = J @ q_dot
     
-    # 手眼标定参数：相机相对于末端法兰的姿态和位置
-    R_he = np.array([[1, 0, 0], [0, 0, 1], [0, -1, 0]])
-    t_he = np.array([0, 0, 0.05])
+    R_he, t_he = hand_eye.R, hand_eye.t
     
     w = R_he.T @ v_ee[3:]
     v = R_he.T @ v_ee[:3] + np.cross(w, R_he.T @ t_he)
@@ -126,7 +225,8 @@ def compute_interaction_matrix(u, v, Z, fx, fy, cx, cy):
 # ============================================================
 
 def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
-               exposure_time=0.03, noise_level=0.0):
+               exposure_time=0.03, noise_level=0.0,
+               hand_eye=None, robot=None):
     """
     核心函数：从机器人关节角推算运动模糊 PSF。
     
@@ -145,6 +245,8 @@ def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
         cx, cy: 主点坐标（默认图像中心）
         exposure_time (float): 曝光时间（秒）
         noise_level (float): 模拟传感器噪声标准差
+        hand_eye (HandEyeCalib): 手眼标定，默认 PANDA_HAND_EYE_SIMPLE
+        robot (RobotConfig): 机器人 D-H 配置，默认 PANDA
     
     返回:
         psf (ksize×ksize): 归一化 PSF 核
@@ -154,7 +256,7 @@ def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
         raise ValueError("cx, cy must be provided or set to image center")
     
     # 步骤 1-2: 关节角 → 相机速度
-    v_cam = get_camera_velocity(q, q_dot)
+    v_cam = get_camera_velocity(q, q_dot, hand_eye=hand_eye, robot=robot)
     
     # 步骤 3: 交互矩阵
     L = compute_interaction_matrix(cx, cy, depth, fx, fy, cx, cy)
@@ -174,18 +276,30 @@ def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
 
 
 def compute_psf_map(q, q_dot, depth, H, W, fx=500, fy=500,
-                    exposure_time=0.03, grid_rows=4, grid_cols=4):
+                    exposure_time=0.03, grid_rows=4, grid_cols=4,
+                    hand_eye=None, robot=None):
     """
     计算空间变化 PSF 地图。
     
     对图像的不同区域分别计算 PSF，因为旋转运动时
     图像不同位置的模糊方向和长度不同。
     
+    参数:
+        q (7,): 关节角（弧度）
+        q_dot (7,): 关节角速度（弧度/秒）
+        depth (float): 物距（米）
+        H, W: 图像高宽（像素）
+        fx, fy: 焦距（像素单位）
+        exposure_time (float): 曝光时间（秒）
+        grid_rows, grid_cols: 网格划分
+        hand_eye (HandEyeCalib): 手眼标定
+        robot (RobotConfig): 机器人 D-H 配置
+    
     返回:
         psf_map: (grid_rows, grid_cols) 的 PSF 数组
         du_grid, dv_grid: 每个网格的像素位移
     """
-    v_cam = get_camera_velocity(q, q_dot)
+    v_cam = get_camera_velocity(q, q_dot, hand_eye=hand_eye, robot=robot)
     psf_map = [[None] * grid_cols for _ in range(grid_rows)]
     du_grid = np.zeros((grid_rows, grid_cols))
     dv_grid = np.zeros((grid_rows, grid_cols))
