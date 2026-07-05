@@ -225,8 +225,7 @@ def compute_interaction_matrix(u, v, Z, fx, fy, cx, cy):
 # ============================================================
 
 def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
-               exposure_time=0.03, noise_level=0.0,
-               hand_eye=None, robot=None):
+               exposure_time=0.03, hand_eye=None, robot=None):
     """
     核心函数：从机器人关节角推算运动模糊 PSF。
     
@@ -244,7 +243,6 @@ def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
         fx, fy: 焦距（像素单位）
         cx, cy: 主点坐标（默认图像中心）
         exposure_time (float): 曝光时间（秒）
-        noise_level (float): 模拟传感器噪声标准差
         hand_eye (HandEyeCalib): 手眼标定，默认 PANDA_HAND_EYE_SIMPLE
         robot (RobotConfig): 机器人 D-H 配置，默认 PANDA
     
@@ -265,11 +263,6 @@ def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
     du_dt, dv_dt = L @ v_cam
     du = du_dt * exposure_time
     dv = dv_dt * exposure_time
-    
-    # 可选：加入噪声模拟传感器不精确
-    if noise_level > 0:
-        du += np.random.randn() * noise_level
-        dv += np.random.randn() * noise_level
     
     # 步骤 5: 从位移创建 PSF
     return create_motion_psf(du, dv), (du, dv)
@@ -318,6 +311,67 @@ def compute_psf_map(q, q_dot, depth, H, W, fx=500, fy=500,
             psf_map[r][c] = create_motion_psf(du_grid[r, c], dv_grid[r, c])
     
     return psf_map, (du_grid, dv_grid)
+
+
+# ============================================================
+# 第三部分（续）：空间变化反卷积（重叠 patch + cosine blending）
+# ============================================================
+
+
+def spatial_wiener_deconvolution(blurred, psf_map, grid_rows, grid_cols,
+                                 K=0.01, overlap=0.25):
+    """Spatially-varying Wiener deconvolution with overlapping patches and cosine blending."""
+    H, W = blurred.shape[:2]
+    result = np.zeros_like(blurred, dtype=np.float64)
+    weight = np.zeros_like(blurred, dtype=np.float64)
+    cell_h = H / grid_rows
+    cell_w = W / grid_cols
+    overlap_h = int(cell_h * overlap + 0.5)
+    overlap_w = int(cell_w * overlap + 0.5)
+    for r in range(grid_rows):
+        for c in range(grid_cols):
+            y0 = max(0, int(r * cell_h) - overlap_h)
+            y1 = min(H, int((r + 1) * cell_h) + overlap_h)
+            x0 = max(0, int(c * cell_w) - overlap_w)
+            x1 = min(W, int((c + 1) * cell_w) + overlap_w)
+            patch = blurred[y0:y1, x0:x1]
+            psf = psf_map[r][c]
+            deblurred_patch = wiener_deconvolution(patch, psf, K=K)
+            wy = 0.5 - 0.5 * np.cos(np.pi * np.arange(y1 - y0) / (y1 - y0))
+            wx = 0.5 - 0.5 * np.cos(np.pi * np.arange(x1 - x0) / (x1 - x0))
+            w = np.outer(wy, wx)
+            result[y0:y1, x0:x1] += deblurred_patch.astype(np.float64) * w
+            weight[y0:y1, x0:x1] += w
+    weight = np.maximum(weight, 1e-10)
+    return np.clip(result / weight, 0, 255).astype(np.uint8)
+
+
+def spatial_richardson_lucy(blurred, psf_map, grid_rows, grid_cols,
+                            iterations=30, overlap=0.25):
+    """Spatially-varying RL deconvolution with overlapping patches and cosine blending."""
+    H, W = blurred.shape[:2]
+    result = np.zeros_like(blurred, dtype=np.float64)
+    weight = np.zeros_like(blurred, dtype=np.float64)
+    cell_h = H / grid_rows
+    cell_w = W / grid_cols
+    overlap_h = int(cell_h * overlap + 0.5)
+    overlap_w = int(cell_w * overlap + 0.5)
+    for r in range(grid_rows):
+        for c in range(grid_cols):
+            y0 = max(0, int(r * cell_h) - overlap_h)
+            y1 = min(H, int((r + 1) * cell_h) + overlap_h)
+            x0 = max(0, int(c * cell_w) - overlap_w)
+            x1 = min(W, int((c + 1) * cell_w) + overlap_w)
+            patch = blurred[y0:y1, x0:x1]
+            psf = psf_map[r][c]
+            deblurred_patch = richardson_lucy(patch, psf, iterations=iterations)
+            wy = 0.5 - 0.5 * np.cos(np.pi * np.arange(y1 - y0) / (y1 - y0))
+            wx = 0.5 - 0.5 * np.cos(np.pi * np.arange(x1 - x0) / (x1 - x0))
+            w = np.outer(wy, wx)
+            result[y0:y1, x0:x1] += deblurred_patch.astype(np.float64) * w
+            weight[y0:y1, x0:x1] += w
+    weight = np.maximum(weight, 1e-10)
+    return np.clip(result / weight, 0, 255).astype(np.uint8)
 
 
 # ============================================================

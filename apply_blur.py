@@ -76,7 +76,7 @@ def apply_motion_blur(img, psf):
     return np.clip(result, 0, 255).astype(np.uint8)
 
 
-def apply_spatial_blur(img, psf_map, grid_rows=4, grid_cols=4):
+def apply_spatial_blur(img, psf_map, grid_rows=4, grid_cols=4, overlap=0.25):
     """
     对图像施加空间变化的运动模糊。
     
@@ -91,19 +91,27 @@ def apply_spatial_blur(img, psf_map, grid_rows=4, grid_cols=4):
     H, W = img.shape[:2]
     out = np.zeros_like(img, dtype=np.float64)
     wt = np.zeros_like(img, dtype=np.float64)
-    ch, cw = H // grid_rows, W // grid_cols
+    
+    cell_h = H / grid_rows
+    cell_w = W / grid_cols
+    overlap_h = int(cell_h * overlap + 0.5)
+    overlap_w = int(cell_w * overlap + 0.5)
     
     for r in range(grid_rows):
         for c in range(grid_cols):
-            y0 = r * ch
-            y1 = (r + 1) * ch if r < grid_rows - 1 else H
-            x0 = c * cw
-            x1 = (c + 1) * cw if c < grid_cols - 1 else W
+            y0 = max(0, int(r * cell_h) - overlap_h)
+            y1 = min(H, int((r + 1) * cell_h) + overlap_h)
+            x0 = max(0, int(c * cell_w) - overlap_w)
+            x1 = min(W, int((c + 1) * cell_w) + overlap_w)
             
             patch = img[y0:y1, x0:x1]
             blurred_patch = apply_motion_blur(patch, psf_map[r][c])
             
-            out[y0:y1, x0:x1] += blurred_patch.astype(np.float64)
-            wt[y0:y1, x0:x1] += 1.0
+            wy = 0.5 - 0.5 * np.cos(np.pi * np.arange(y1 - y0) / (y1 - y0))
+            wx = 0.5 - 0.5 * np.cos(np.pi * np.arange(x1 - x0) / (x1 - x0))
+            w = np.outer(wy, wx)
+            
+            out[y0:y1, x0:x1] += blurred_patch.astype(np.float64) * w
+            wt[y0:y1, x0:x1] += w
     
     return (out / np.maximum(wt, 1e-10)).astype(np.uint8)
