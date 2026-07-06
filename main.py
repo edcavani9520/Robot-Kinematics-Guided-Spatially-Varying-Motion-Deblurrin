@@ -37,76 +37,7 @@ from joint_deblur import (
 from h5_loader import detect_h5_format, load_episode_h5, load_droid_h5, \
     EpisodeFrameReader, DroidFrameReader
 from evaluate import evaluate
-
-
-# ============================================================
-# 数据加载器（CSV）
-# ============================================================
-
-_HAND_EYE_MAP = {
-    "simple": PANDA_HAND_EYE_SIMPLE,
-    "droid-left": DROID_HAND_EYE_LEFT,
-    "droid-right": DROID_HAND_EYE_RIGHT,
-}
-
-
-def load_joint_csv(csv_path):
-    """加载标准关节角 CSV: timestamp, q1..q7, qd1..qd7"""
-    timestamps, q_list, qd_list = [], [], []
-    with open(csv_path, "r") as f:
-        next(f, None)
-        for row in csv.reader(f):
-            if len(row) < 15:
-                continue
-            try:
-                t = float(row[0])
-                q = np.array([float(row[i]) for i in range(1, 8)])
-                qd = np.array([float(row[i]) for i in range(8, 15)])
-                timestamps.append(t)
-                q_list.append(q)
-                qd_list.append(qd)
-            except (ValueError, IndexError):
-                continue
-    if not timestamps:
-        raise ValueError(f"No valid joint data in {csv_path}")
-    print(f"Loaded {len(timestamps)} joint states from {csv_path}")
-    return np.array(timestamps), np.array(q_list), np.array(qd_list)
-
-
-def load_droid_actions_csv(csv_path):
-    """加载 DROID actions.csv: action_joint_0..6, 有限差分算速度"""
-    timestamps, q_list = [], []
-    with open(csv_path, "r") as f:
-        for row in csv.DictReader(f):
-            q_list.append([float(row[f"action_joint_{i}"]) for i in range(7)])
-            timestamps.append(float(row["timestamp_ms"]) / 1000.0)
-    q = np.array(q_list)
-    t = np.array(timestamps)
-    qd = np.zeros_like(q)
-    dt = np.diff(t)
-    for i in range(7):
-        qd[:-1, i] = np.diff(q[:, i]) / np.maximum(dt, 1e-6)
-        qd[-1, i] = qd[-2, i]
-    print(f"Loaded {len(t)} DROID action frames from {csv_path}")
-    return t, q, qd
-
-
-def load_joints_auto(csv_path):
-    """自动识别 CSV 格式并加载"""
-    with open(csv_path, "r") as f:
-        header = f.readline().strip().lower()
-    if "action_joint" in header:
-        return load_droid_actions_csv(csv_path)
-    return load_joint_csv(csv_path)
-
-
-def find_nearest_joint(frame_t, joint_ts, q_all, qd_all, max_dt=0.1):
-    idx = np.argmin(np.abs(joint_ts - frame_t))
-    dt = abs(joint_ts[idx] - frame_t)
-    if dt > max_dt:
-        print(f"  [WARN] Frame-joint time skew {dt:.3f}s exceeds {max_dt}s threshold")
-    return q_all[idx], qd_all[idx], joint_ts[idx]
-
+from csv_loader import load_joints_auto, find_nearest_joint, HAND_EYE_MAP
 
 # ============================================================
 # 核心去模糊
@@ -237,7 +168,7 @@ def run_deblur_pipeline(joint_csv, output_dir,
         hand_eye = PANDA_HAND_EYE_SIMPLE
 
     output_dir = Path(output_dir)
-    handeye_name = {v: k for k, v in _HAND_EYE_MAP.items()}.get(hand_eye, "custom")
+    handeye_name = {v: k for k, v in HAND_EYE_MAP.items()}.get(hand_eye, "custom")
 
     params = dict(fx=fx, fy=fy, depth=depth, exposure_time=exposure,
                   method=method, K=K, rl_iters=rl_iters)
@@ -480,7 +411,7 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
         H, W = meta["H"], meta["W"]
         video_fps = meta["video_fps"]
 
-    hand_eye_params = _HAND_EYE_MAP[hand_eye]
+    hand_eye_params = HAND_EYE_MAP[hand_eye]
 
     # 输出目录
     print("[3/4] 创建输出目录...")
@@ -666,7 +597,7 @@ def main():
             use_obs_joint=args.use_obs_joint,
         )
     else:
-        hand_eye = _HAND_EYE_MAP[args.hand_eye]
+        hand_eye = HAND_EYE_MAP[args.hand_eye]
         run_deblur_pipeline(
             joint_csv=args.joints,
             output_dir=args.output,
