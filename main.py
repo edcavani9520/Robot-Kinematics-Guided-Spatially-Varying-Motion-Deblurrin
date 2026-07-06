@@ -32,7 +32,7 @@ from joint_deblur import (
     wiener_deconvolution, richardson_lucy,
     spatial_wiener_deconvolution, spatial_richardson_lucy,
     PANDA, PANDA_HAND_EYE_SIMPLE,
-    DROID_HAND_EYE_LEFT, DROID_HAND_EYE_RIGHT,
+    get_configs,
 )
 from h5_loader import detect_h5_format, load_episode_h5, load_droid_h5, \
     EpisodeFrameReader, DroidFrameReader

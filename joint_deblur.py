@@ -1,4 +1,4 @@
-﻿"""
+"""
 joint_deblur.py — 用关节角数据去模糊
 ========================================
 核心功能：从机器人关节角推算 PSF，再反卷积去模糊。
@@ -16,83 +16,7 @@ joint_deblur.py — 用关节角数据去模糊
 
 import numpy as np
 import math
-from collections import namedtuple
-from apply_blur import pad_psf, create_motion_psf
-
-
-# ============================================================
-# 数据类型定义：可配置的机器人 & 相机参数
-# ============================================================
-
-RobotConfig = namedtuple("RobotConfig", ["a", "alpha", "d", "theta_offset"])
-"""
-机器人 D-H 参数配置。
-  a (7,):       连杆长度
-  alpha (7,):   连杆扭角 (rad)
-  d (7,):       连杆偏距
-  theta_offset (7,):  关节零点偏移 (rad)
-"""
-
-HandEyeCalib = namedtuple("HandEyeCalib", ["R", "t"])
-"""
-手眼标定参数：相机坐标系 → 末端法兰坐标系的变换。
-  R (3,3):  R_he  旋转矩阵
-  t (3,):   t_he  平移向量 (m)
-"""
-
-
-# ============================================================
-# 预设机器人 D-H 参数
-# ============================================================
-
-# --- Franka Panda 标准 D-H（当前代码使用的参数） ---
-PANDA = RobotConfig(
-    a=np.array([0, 0, 0, 0.0825, -0.0825, 0, 0]),
-    alpha=np.array([-np.pi/2, np.pi/2, np.pi/2, -np.pi/2, np.pi/2, np.pi/2, 0]),
-    d=np.array([0.333, 0, 0.316, 0, 0.384, 0, 0.088]),
-    theta_offset=np.array([0, -np.pi/2, 0, -np.pi/2, 0, np.pi/2, np.pi/4]),
-)
-""" Franka Panda 7-DOF 机械臂标准 D-H 参数 """
-
-
-# ============================================================
-# 预设手眼标定参数
-# ============================================================
-
-# --- 简化近似版（代码中原先硬编码的默认值） ---
-PANDA_HAND_EYE_SIMPLE = HandEyeCalib(
-    R=np.array([[1, 0, 0], [0, 0, 1], [0, -1, 0]]),
-    t=np.array([0, 0, 0.05]),
-)
-"""
-简化的手眼标定（仅近似，用于测试）。
-  x_cam = x_ee,  y_cam = z_ee,  z_cam = -y_ee
-"""
-
-# --- DROID 数据集手腕相机实测手眼标定（左相机 17368348）---
-# 来自 DROID trajectory.h5 observation/camera_extrinsics/{serial}_left_gripper_offset
-DROID_HAND_EYE_LEFT = HandEyeCalib(
-    R=np.array([
-        [ 0.0166,  0.9463,  0.3229],
-        [-0.9991,  0.0030,  0.0427],
-        [ 0.0394, -0.3233,  0.9455],
-    ]),
-    t=np.array([-0.07808,  0.02325,  0.01505]),
-)
-""" DROID 数据集 wrist 左相机 hand-eye (serial=17368348) """
-
-# --- DROID 数据集手腕相机实测手眼标定（右相机 17368348）---
-DROID_HAND_EYE_RIGHT = HandEyeCalib(
-    R=np.array([
-        [ 0.0287,  0.9513,  0.3071],
-        [-0.9990,  0.0168,  0.0414],
-        [ 0.0343, -0.3079,  0.9508],
-    ]),
-    t=np.array([-0.07052, -0.04072,  0.02304]),
-)
-""" DROID 数据集 wrist 右相机 hand-eye (serial=17368348) """
-
-
+from robot_configs import RobotConfig, HandEyeCalib, PANDA, PANDA_HAND_EYE_SIMPLE, DROID_HAND_EYE_LEFT, DROID_HAND_EYE_RIGHT, get_configs
 # ============================================================
 # 第一部分：机器人运动学 — 从 D-H 到正运动学 / 雅可比
 # ============================================================
@@ -168,9 +92,10 @@ def get_camera_velocity(q, q_dot, hand_eye=None, robot=None):
     相机安装在末端法兰上，通过手眼标定参数 R_he / t_he
     将末端速度转换到相机坐标系。
     
-    公式：
-      v_cam = R_he^T · v_ee + ω_ee × (R_he^T · t_he)
-      ω_cam = R_he^T · ω_ee
+    公式（三步推导）：
+      v_ee_ee = R_ee^T · v_ee,   ω_ee_ee = R_ee^T · ω_ee      （基座系 → 末端系）
+      v_cam_ee = v_ee_ee + ω_ee_ee × t_he                        （附加线速度）
+      v_cam = R_he^T · v_cam_ee,   ω_cam = R_he^T · ω_ee_ee     （末端系 → 相机系）
     
     参数:
         q (7,): 关节角（弧度）
@@ -186,14 +111,23 @@ def get_camera_velocity(q, q_dot, hand_eye=None, robot=None):
     if robot is None:
         robot = PANDA
     
-    J, _ = get_geometric_jacobian(q, robot=robot)
+    J, T_list = get_geometric_jacobian(q, robot=robot)
     v_ee = J @ q_dot
-    
+
+    # 第1步：从基座系变换到末端系（R_ee^T）
+    R_ee = T_list[-1][:3, :3]  # 末端姿态旋转矩阵
+    w_ee = R_ee.T @ v_ee[3:]   # 角速度 → 末端系
+    v_ee_local = R_ee.T @ v_ee[:3]  # 线速度 → 末端系
+
     R_he, t_he = hand_eye.R, hand_eye.t
-    
-    w = R_he.T @ v_ee[3:]
-    v = R_he.T @ v_ee[:3] + np.cross(w, R_he.T @ t_he)
-    return np.concatenate([v, w])
+
+    # 第2步：末端系内，角速度引起的附加线速度
+    v_cam_ee = v_ee_local + np.cross(w_ee, t_he)
+
+    # 第3步：从末端系到相机系（手眼标定 R_he^T）
+    w_cam = R_he.T @ w_ee
+    v_cam = R_he.T @ v_cam_ee
+    return np.concatenate([v_cam, w_cam])
 
 
 # ============================================================
@@ -316,6 +250,65 @@ def compute_psf_map(q, q_dot, depth, H, W, fx=500, fy=500,
 # ============================================================
 # 第三部分（续）：空间变化反卷积（重叠 patch + cosine blending）
 # ============================================================
+
+
+# ============================================================
+# PSF utility functions (moved from apply_blur.py)
+# ============================================================
+
+
+def create_motion_psf(du, dv):
+    """
+    Create a motion blur PSF kernel from pixel displacement (du, dv).
+
+    Draws a line along the motion direction in the spatial domain,
+    then normalizes so total energy = 1.
+
+    Parameters:
+        du, dv: pixel displacement in x/y during exposure
+    Returns:
+        (ksize, ksize) normalized PSF kernel
+    """
+    ksize = max(2 * int(abs(du)), 2 * int(abs(dv))) + 1
+    ksize = max(ksize, 3)
+    ksize = ksize if ksize % 2 == 1 else ksize + 1
+
+    psf = np.zeros((ksize, ksize), dtype=np.float32)
+    c = ksize // 2
+    steps = max(int(math.hypot(du, dv) * 2.5), 200)
+
+    for t in np.linspace(0, 1, steps):
+        x = int(round(c + t * dv))
+        y = int(round(c + t * du))
+        if 0 <= x < ksize and 0 <= y < ksize:
+            psf[x, y] += 1.0
+
+    s = psf.sum()
+    return psf / s if s > 0 else psf
+
+
+def pad_psf(psf, shape):
+    """
+    Pad PSF to image size and shift its centroid to (0,0).
+
+    This is critical for FFT convolution: the PSF centroid must be
+    at (0,0), otherwise the convolution result will have a shift.
+
+    Parameters:
+        psf: PSF kernel (kh, kw)
+        shape: target (h, w)
+    Returns:
+        padded and rolled PSF (h, w)
+    """
+    h, w = shape[:2]
+    kh, kw = psf.shape
+    cy, cx = np.unravel_index(psf.argmax(), psf.shape)
+
+    pad = np.zeros((h, w), dtype=np.float64)
+    pad[:kh, :kw] = psf
+    pad = np.roll(pad, -cy, axis=0)
+    pad = np.roll(pad, -cx, axis=1)
+    return pad
 
 
 def spatial_wiener_deconvolution(blurred, psf_map, grid_rows, grid_cols,

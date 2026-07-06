@@ -7,17 +7,7 @@ import csv
 import numpy as np
 from pathlib import Path
 
-from joint_deblur import (
-    PANDA_HAND_EYE_SIMPLE,
-    DROID_HAND_EYE_LEFT,
-    DROID_HAND_EYE_RIGHT,
-)
-
-HAND_EYE_MAP = {
-    "simple": PANDA_HAND_EYE_SIMPLE,
-    "droid-left": DROID_HAND_EYE_LEFT,
-    "droid-right": DROID_HAND_EYE_RIGHT,
-}
+from robot_configs import HAND_EYE_MAP
 
 
 def load_joint_csv(csv_path):
