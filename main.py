@@ -38,6 +38,7 @@ from h5_loader import detect_h5_format, load_episode_h5, load_droid_h5, \
     EpisodeFrameReader, DroidFrameReader
 from evaluate import evaluate
 from csv_loader import load_joints_auto, find_nearest_joint, HAND_EYE_MAP
+from robot_configs import get_robot
 
 # ============================================================
 # 核心去模糊
@@ -356,7 +357,8 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
                      hand_eye="simple", camera_serial=None,
                      fx=733.37, fy=733.37, depth=0.5, exposure=0.03,
                      method="wiener", K=0.01, rl_iters=30,
-                     max_frames=None, use_obs_joint=False):
+                     max_frames=None, use_obs_joint=False,
+                     robot_name="panda"):
     output_dir = Path(output_dir)
     params = dict(fx=fx, fy=fy, depth=depth, exposure_time=exposure,
                   method=method, K=K, rl_iters=rl_iters)
@@ -367,6 +369,8 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
     print(f"  H5:         {h5_path}")
     print(f"  Output:     {output_dir}")
     print(f"  Hand-eye:   {hand_eye}")
+    print(f"  Robot:      {robot_name}")
+    robot = get_robot(robot_name)
     print(f"  Method:     {method}", end="")
     if method == "wiener":
         print(f" (K={K})")
@@ -447,7 +451,7 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
             qd = joint_vel[ri]
 
             deblurred, meta = process_frame(
-                gray, q, qd, params, hand_eye_params, PANDA)
+                gray, q, qd, params, hand_eye_params, robot)
 
             save_deblur_result(output_dir, i, gray, deblurred, meta,
                                comp_writer, vid_writer)
@@ -540,6 +544,8 @@ def main():
     parser.add_argument("--gt", type=str, default=None,
                         help="Ground truth 视频（仅 --video 模式）")
 
+    parser.add_argument("--robot", type=str, default="panda",
+                    help="Robot config (panda, kinova-gen3)")
     parser.add_argument("--hand-eye", type=str, default="simple",
                         choices=["simple", "droid-left", "droid-right"],
                         help="手眼标定预设")
@@ -595,7 +601,7 @@ def main():
             method=args.method, K=args.K, rl_iters=args.rl_iters,
             max_frames=args.max_frames,
             use_obs_joint=args.use_obs_joint,
-        )
+            robot_name=args.robot)
     else:
         hand_eye = HAND_EYE_MAP[args.hand_eye]
         run_deblur_pipeline(
