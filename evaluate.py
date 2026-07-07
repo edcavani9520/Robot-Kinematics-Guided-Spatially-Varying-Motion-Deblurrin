@@ -49,6 +49,26 @@ def ssim(img1, img2):
     denominator = (mu1**2 + mu2**2 + C1) * (s1 + s2 + C2)
     return numerator / denominator
 
+def laplacian_sharpness(img):
+    import cv2
+    if img.dtype != np.uint8:
+        img = np.clip(img, 0, 255).astype(np.uint8)
+    lap = cv2.Laplacian(img, cv2.CV_64F)
+    return float(lap.var())
+
+
+def compare_sharpness(img_before, img_after):
+    b = laplacian_sharpness(img_before)
+    a = laplacian_sharpness(img_after)
+    ch = a - b
+    return {
+        "before": b,
+        "after": a,
+        "change": ch,
+        "improved": a > b,
+        "judgment": "++ SHARPER" if ch > 0 else "-- BLURRIER" if ch < 0 else "   SAME",
+    }
+
 
 def match_histogram(source, reference):
     """
