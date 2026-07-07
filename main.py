@@ -1,29 +1,33 @@
-"""
-main.py — 主函数：逐帧去模糊 pipeline
+﻿"""
+main.py - 主函数：逐帧去模糊pipeline
 =========================================
 功能：
-  1. 从视频/图片/h5 读取帧 + 同步关节角数据
-  2. 逐帧从关节角算 PSF → 去模糊（支持全局/空间变化 PSF）
-  3. 保存结果（含对比图、PSF 报告）
+  1. 从视频/图片/h5读取帧 + 同步关节角数据
+  2. 逐帧从关节角计算PSF → 去模糊（支持全局/空间变化PSF）
+  3. 保存结果（含对比图、PSF报告）
 
 输入方式：
   --video blurry.mp4 --joints joints.csv
   --frames ./frames/ --joints actions.csv
   --h5 episode_0004.h5
 
-输出结构：
+输出结果：
   output/
   ├── blurred/          原始模糊帧
   ├── deblurred/        去模糊帧
-  ├── comparison/       左右对比图 (blurred | deblurred)
+  ├── comparison/       左右对比图(blurred | deblurred)
   ├── deblurred_video.mp4
   ├── comparison_video.mp4
-  └── psf_report.csv    每帧 PSF 参数
+  └── psf_report.csv    每帧PSF参数
 """
 
 import numpy as np
 import cv2
-import os, sys, csv, time, argparse
+import os
+import sys
+import csv
+import time
+import argparse
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -43,7 +47,6 @@ from robot_configs import get_robot
 # ============================================================
 # 核心去模糊
 # ============================================================
-
 def process_frame(frame_gray, q, q_dot, params, hand_eye, robot,
                   spatial=False, grid_rows=4, grid_cols=4, overlap=0.25):
     h, w = frame_gray.shape
@@ -87,16 +90,14 @@ def process_frame(frame_gray, q, q_dot, params, hand_eye, robot,
             raise ValueError(f"Unknown method: {method}")
         return deblurred, ("global", psf, du, dv)
 
-
 # ============================================================
-# 结果保存（统一输出结构）
+# 结果保存（统一输出结果）
 # ============================================================
-
 def save_deblur_result(output_dir, frame_idx, gray, deblurred, psf_meta,
                        comp_writer=None, vid_writer=None):
     """
-    保存单帧去模糊结果。
-    psf_meta: like process_frame return (mode, psf, du, dv) or (mode, psf_map, ...)
+    保存单帧去模糊结果
+    psf_meta: 格式同process_frame返回值 (mode, psf, du, dv) 或 (mode, psf_map, ...)
     """
     blurred_dir = output_dir / "blurred"
     deblurred_dir = output_dir / "deblurred"
@@ -116,7 +117,7 @@ def save_deblur_result(output_dir, frame_idx, gray, deblurred, psf_meta,
     cv2.imwrite(str(blurred_dir / f"step_{frame_idx:04d}.jpg"), gray)
     cv2.imwrite(str(deblurred_dir / f"step_{frame_idx:04d}.jpg"), deblurred)
 
-    # 对比图
+    # 生成对比图
     h, w = gray.shape
     gray_color = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
     deb_color = cv2.cvtColor(deblurred, cv2.COLOR_GRAY2BGR)
@@ -130,16 +131,15 @@ def save_deblur_result(output_dir, frame_idx, gray, deblurred, psf_meta,
                 (w + 8, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
     cv2.imwrite(str(comparison_dir / f"compare_{frame_idx:04d}.jpg"), canvas)
 
-    # 写入视频（不加标注）
+    # 写入视频（无标签）
     if vid_writer is not None:
         vid_writer.write(deblurred)
     if comp_writer is not None:
         comp = np.hstack([gray_color, deb_color])
         comp_writer.write(comp)
 
-
 def setup_output_dirs(output_dir, W, H, fps=15.0):
-    """创建输出目录和 video writers"""
+    """创建输出目录和视频写入器"""
     output_dir = Path(output_dir)
     for d in ["blurred", "deblurred", "comparison"]:
         (output_dir / d).mkdir(parents=True, exist_ok=True)
@@ -151,11 +151,9 @@ def setup_output_dirs(output_dir, W, H, fps=15.0):
                          fourcc, fps, (W * 2, H), isColor=True)
     return dv, cv
 
-
 # ============================================================
-# CSV 模式：视频 / 图片帧
+# CSV模式：视频/图片帧处理
 # ============================================================
-
 def run_deblur_pipeline(joint_csv, output_dir,
                          video_path=None, frames_dir=None,
                          ground_truth_path=None,
@@ -175,12 +173,12 @@ def run_deblur_pipeline(joint_csv, output_dir,
                   method=method, K=K, rl_iters=rl_iters)
 
     print("=" * 60)
-    print("  Motion Deblur Pipeline (CSV mode)")
+    print("  运动模糊去除流水线 (CSV模式)")
     print("=" * 60)
-    print(f"  Camera: fx={fx:.1f}, fy={fy:.1f}, depth={depth}m, exposure={exposure}s")
-    print(f"  Hand-eye: {handeye_name}")
-    print(f"  Spatial:  {'yes (%dx%d, overlap=%.2f)' % (grid_rows, grid_cols, overlap) if spatial else 'no (global PSF)'}")
-    print(f"  Output:   {output_dir}")
+    print(f"  相机参数: fx={fx:.1f}, fy={fy:.1f}, 深度={depth}m, 曝光时间={exposure}s")
+    print(f"  手眼标定: {handeye_name}")
+    print(f"  空间PSF:  {'开启 (%dx%d, 重叠率=%.2f)' % (grid_rows, grid_cols, overlap) if spatial else '关闭 (全局统一PSF)'}")
+    print(f"  输出目录: {output_dir}")
     print()
 
     joint_ts, q_all, qd_all = load_joints_auto(joint_csv)
@@ -190,7 +188,7 @@ def run_deblur_pipeline(joint_csv, output_dir,
                 sorted(Path(frames_dir).glob("*.png"))
         if max_frames:
             paths = paths[:max_frames]
-        print(f"Loaded {len(paths)} frames from {frames_dir}")
+        print(f"已加载 {len(paths)} 帧图片 from {frames_dir}")
         _process_frame_list(paths, joint_ts, q_all, qd_all,
                             params, hand_eye, robot, output_dir,
                             spatial, grid_rows, grid_cols, overlap)
@@ -200,8 +198,7 @@ def run_deblur_pipeline(joint_csv, output_dir,
                        ground_truth_path, max_frames,
                        spatial, grid_rows, grid_cols, overlap)
     else:
-        raise ValueError("Provide --video or --frames")
-
+        raise ValueError("请提供 --video 或 --frames 参数")
 
 def _process_frame_list(paths, joint_ts, q_all, qd_all,
                          params, hand_eye, robot, output_dir,
@@ -261,8 +258,7 @@ def _process_frame_list(paths, joint_ts, q_all, qd_all,
     vid_writer.release()
     comp_writer.release()
     total = time.time() - start
-    print(f"Done. {n} frames in {total:.1f}s ({n/total:.1f}fps)")
-
+    print(f"处理完成！{n} 帧，耗时 {total:.1f}s ({n/total:.1f}fps)")
 
 def _process_video(video_path, joint_ts, q_all, qd_all,
                     params, hand_eye, robot, output_dir,
@@ -270,11 +266,11 @@ def _process_video(video_path, joint_ts, q_all, qd_all,
                     spatial=False, grid_rows=4, grid_cols=4, overlap=0.25):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
-        raise IOError(f"Cannot open {video_path}")
+        raise IOError(f"无法打开视频: {video_path}")
     fps = cap.get(cv2.CAP_PROP_FPS)
     w, h = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    print(f"Video: {fps:.1f}fps, {w}×{h}, {total} frames")
+    print(f"视频信息: {fps:.1f}fps, {w}×{h}, 总帧数{total}")
 
     gt_cap = cv2.VideoCapture(gt_path) if gt_path else None
     vid_writer, comp_writer = setup_output_dirs(output_dir, w, h, fps)
@@ -333,7 +329,7 @@ def _process_video(video_path, joint_ts, q_all, qd_all,
                         gt_gray = cv2.cvtColor(gt_bgr, cv2.COLOR_BGR2GRAY)
                         m, _ = evaluate(gt_gray, deblurred)
                         m_b, _ = evaluate(gt_gray, gray)
-                        info += f" | PSNR: blur={m_b['PSNR_raw']:.1f}→{m['PSNR_raw']:.1f}"
+                        info += f" | PSNR: 模糊={m_b['PSNR_raw']:.1f} → 去模糊={m['PSNR_raw']:.1f}"
                 print(info)
 
             frame_idx += 1
@@ -346,13 +342,11 @@ def _process_video(video_path, joint_ts, q_all, qd_all,
     vid_writer.release()
     comp_writer.release()
     elapsed = time.time() - start
-    print(f"Done. {frame_idx} frames in {elapsed:.1f}s ({frame_idx/elapsed:.1f}fps)")
-
+    print(f"处理完成！{frame_idx} 帧，耗时 {elapsed:.1f}s ({frame_idx/elapsed:.1f}fps)")
 
 # ============================================================
-# H5 模式
+# H5模式处理
 # ============================================================
-
 def run_h5_pipeline(h5_path, episode_dir, output_dir,
                      hand_eye="simple", camera_serial=None,
                      fx=733.37, fy=733.37, depth=0.5, exposure=0.03,
@@ -364,29 +358,29 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
                   method=method, K=K, rl_iters=rl_iters)
 
     print("=" * 60)
-    print("  Motion Deblur Pipeline (H5 mode)")
+    print("  运动模糊去除流水线 (H5模式)")
     print("=" * 60)
-    print(f"  H5:         {h5_path}")
-    print(f"  Output:     {output_dir}")
-    print(f"  Hand-eye:   {hand_eye}")
-    print(f"  Robot:      {robot_name}")
+    print(f"  H5文件: {h5_path}")
+    print(f"  输出目录: {output_dir}")
+    print(f"  手眼标定: {hand_eye}")
+    print(f"  机器人: {robot_name}")
     robot = get_robot(robot_name)
-    print(f"  Method:     {method}", end="")
+    print(f"  去模糊方法: {method}", end="")
     if method == "wiener":
         print(f" (K={K})")
     else:
-        print(f" (iters={rl_iters})")
-    print(f"  Camera:     fx={fx:.1f}, fy={fy:.1f}, depth={depth}m, exposure={exposure}s")
+        print(f" (迭代次数={rl_iters})")
+    print(f"  相机参数: fx={fx:.1f}, fy={fy:.1f}, 深度={depth}m, 曝光时间={exposure}s")
     print()
 
-    # 检测格式
+    # 检测H5格式
     fmt = detect_h5_format(h5_path)
-    print(f"[1/4] 检测 h5 格式: {fmt}")
+    print(f"[1/4] 检测h5格式: {fmt}")
     if fmt == "unknown":
-        raise RuntimeError(f"无法识别的 h5 格式: {h5_path}")
+        raise RuntimeError(f"无法识别的h5格式: {h5_path}")
 
     # 读取数据
-    print("[2/4] 读取 h5 数据...")
+    print("[2/4] 读取h5数据...")
     if fmt == "episode":
         meta = load_episode_h5(h5_path)
         from h5_loader import EpisodeFrameReader as EFR
@@ -417,12 +411,12 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
 
     hand_eye_params = HAND_EYE_MAP[hand_eye]
 
-    # 输出目录
+    # 创建输出目录
     print("[3/4] 创建输出目录...")
     vid_writer, comp_writer = setup_output_dirs(output_dir, W, H, video_fps)
 
     # 逐帧去模糊
-    print("[4/4] 开始去模糊...")
+    print("[4/4] 开始去模糊处理...")
     print()
 
     limit = min(num_frames, max_frames) if max_frames else num_frames
@@ -439,7 +433,7 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
         for i in range(limit):
             frame_bgr = frame_reader.read_frame(i)
             if frame_bgr is None:
-                print(f"  [WARN] step {i}: 无法读取帧")
+                print(f"  [警告] 第{i}帧：无法读取")
                 continue
 
             gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
@@ -474,11 +468,11 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
             if i % save_interval == 0:
                 elapsed = time.time() - start_time
                 fps = (i + 1) / elapsed if elapsed > 0 else 0
-                line = f"  [{i}/{limit}]  ri={ri}"
+                line = f"  [{i}/{limit}]  机器人索引={ri}"
                 if mode == "global":
                     line += f"  du={du:.2f} dv={dv:.2f}  psf={psf.shape[0]}×{psf.shape[1]}"
                 else:
-                    line += f"  spatial |du|_avg={du:.2f}"
+                    line += f"  空间PSF |du|_avg={du:.2f}"
                 line += f"  {fps:.1f}fps"
                 print(line)
 
@@ -488,107 +482,105 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
 
     total_time = time.time() - start_time
     print()
-    print(f"  ✅ 完成! 处理 {limit} 帧, 耗时 {total_time:.1f}s ({limit/total_time:.1f}fps)")
-    print(f"  📁 输出: {output_dir}/")
-    print(f"     ├── blurred/          — 原始模糊帧")
-    print(f"     ├── deblurred/        — 去模糊帧")
-    print(f"     ├── comparison/       — 左右对比图")
+    print(f"  ✅ 处理完成！共处理 {limit} 帧，耗时 {total_time:.1f}s ({limit/total_time:.1f}fps)")
+    print(f"  📂 输出文件目录: {output_dir}/")
+    print(f"     ├── blurred/          - 原始模糊帧")
+    print(f"     ├── deblurred/        - 去模糊帧")
+    print(f"     ├── comparison/       - 左右对比图")
     print(f"     ├── deblurred_video.mp4")
     print(f"     ├── comparison_video.mp4")
     print(f"     └── psf_report.csv")
 
-
 # ============================================================
-# CLI
+# 命令行参数解析
 # ============================================================
-
 def main():
     parser = argparse.ArgumentParser(
-        description="Kinematics-Guided Motion Deblurring",
+        description="运动学引导的运动模糊去除工具",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-输入方式（三选一）:
+输入方式（三选一）：
   1. --video blurry.mp4 --joints joints.csv
   2. --frames ./frames/ --joints actions.csv
   3. --h5 episode_0004.h5
 
-空间变化 PSF:
-  --spatial         启用空间变化 PSF（默认关闭，使用全局单一 PSF）
+空间变化PSF参数：
+  --spatial         启用空间变化PSF（默认关闭，使用全局统一PSF）
   --grid-rows 4     网格行数
   --grid-cols 4     网格列数
   --overlap 0.25    分块重叠比例
 
-示例:
-  # 视频 + CSV（全局 PSF）
+使用示例：
+  # 视频+CSV（全局PSF）
   python main.py --video blurry.mp4 --joints joints.csv
 
-  # 图片目录 + 空间变化 PSF
+  # 图片目录+空间变化PSF
   python main.py --frames ./frames/ --joints actions.csv --spatial
 
-  # h5 文件
+  # h5文件处理
   python main.py --h5 episode_0004.h5
   python main.py --h5 trajectory.h5 --hand-eye droid-left
         """)
 
+    # 输入源互斥参数
     src = parser.add_mutually_exclusive_group(required=True)
     src.add_argument("--video", type=str, help="输入视频路径")
     src.add_argument("--frames", type=str, help="输入图片目录")
-    src.add_argument("--h5", type=str, help="h5 文件路径（自动检测格式）")
+    src.add_argument("--h5", type=str, help="h5数据文件路径（自动检测格式）")
 
     parser.add_argument("--joints", type=str,
-                        help="关节角 CSV（--video / --frames 模式必填）")
+                        help="关节角CSV文件（视频/图片模式必填）")
     parser.add_argument("--episode-dir", type=str, default=None,
-                        help="episode 目录（DROID h5 模式，自动找 recordings/MP4）")
+                        help="episode目录（DROID h5模式专用）")
     parser.add_argument("--output", type=str, default="deblur_output",
-                        help="输出目录")
+                        help="结果输出目录")
     parser.add_argument("--gt", type=str, default=None,
-                        help="Ground truth 视频（仅 --video 模式）")
+                        help="清晰真值视频（仅视频模式）")
 
     parser.add_argument("--robot", type=str, default="panda",
-                    help="Robot config (panda, kinova-gen3)")
+                    help="机器人配置 (panda, kinova-gen3)")
     parser.add_argument("--hand-eye", type=str, default="simple",
-                        choices=["simple", "droid-left", "droid-right"],
+                        choices=["simple", "droid-left", "droid-right", "kinova-gen3"],
                         help="手眼标定预设")
     parser.add_argument("--camera", type=str, default=None,
-                        help="摄像头 serial（仅 DROID h5 格式）")
+                        help="相机序列号（仅DROID h5格式）")
     parser.add_argument("--fx", type=float, default=733.37,
-                        help="焦距 x")
+                        help="相机x方向焦距")
     parser.add_argument("--fy", type=float, default=733.37,
-                        help="焦距 y")
+                        help="相机y方向焦距")
     parser.add_argument("--depth", type=float, default=0.5,
-                        help="物距 (米)")
+                        help="目标深度（米）")
     parser.add_argument("--exposure", type=float, default=0.03,
-                        help="曝光时间 (秒)")
+                        help="曝光时间（秒）")
 
     parser.add_argument("--method", choices=["wiener", "rl"], default="wiener",
-                        help="反卷积方法")
+                        help="反卷积算法")
     parser.add_argument("--K", type=float, default=0.01,
-                        help="Wiener K (越小去模糊越强)")
+                        help="维纳滤波参数K（值越小去模糊越强）")
     parser.add_argument("--rl-iters", type=int, default=30,
-                        help="RL 迭代次数")
+                        help="RL算法迭代次数")
     parser.add_argument("--max-frames", type=int, default=None,
-                        help="限制处理帧数")
+                        help="最大处理帧数")
     parser.add_argument("--use-obs-joint", action="store_true",
-                        help="h5 模式使用 observation 关节角")
+                        help="h5模式使用观测关节角")
 
-    # 空间变化 PSF
+    # 空间PSF参数
     parser.add_argument("--spatial", action="store_true",
-                        help="使用空间变化 PSF (默认: 全局单一 PSF)")
+                        help="启用空间变化PSF（默认：全局统一PSF）")
     parser.add_argument("--grid-rows", type=int, default=4,
-                        help="PSF 地图网格行数")
+                        help="PSF网格行数")
     parser.add_argument("--grid-cols", type=int, default=4,
-                        help="PSF 地图网格列数")
+                        help="PSF网格列数")
     parser.add_argument("--overlap", type=float, default=0.25,
                         help="空间反卷积分块重叠比例")
 
     args = parser.parse_args()
 
-    # 校验
-    if args.video or args.frames:
-        if not args.joints:
-            parser.error("--video / --frames 模式需要 --joints")
+    # 参数校验
+    if (args.video or args.frames) and not args.joints:
+        parser.error("视频/图片模式必须指定--joints参数")
 
-    # 执行
+    # 执行主逻辑
     if args.h5:
         run_h5_pipeline(
             h5_path=args.h5,
@@ -619,7 +611,6 @@ def main():
             grid_rows=args.grid_rows, grid_cols=args.grid_cols,
             overlap=args.overlap,
         )
-
 
 if __name__ == "__main__":
     main()
