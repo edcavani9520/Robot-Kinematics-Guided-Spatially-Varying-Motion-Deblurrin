@@ -60,6 +60,17 @@ PANDA = RobotConfig(
 )
 """ Franka Panda 7 自由度机械臂标准 D-H 参数 """
 
+# --- Kinova Gen3（7 自由度）---
+# 标准 DH 参数，来源：Kinova Kortex API 官方文档
+# 参考：https://github.com/Kinovarobotics/ros2_kortex
+KINOVA_GEN3 = RobotConfig(
+    a=np.array([0, 0, 0, 0.21038, 0, 0, 0]),
+    alpha=np.array([0.000000, -1.570796, 1.570796, 1.570796, -1.570796, 1.570796, -1.570796]),
+    d=np.array([0.15643, 0.00538, -0.00638, 0.00638, 0.20843, 0.10593, 0]),
+    theta_offset=np.array([0, -1.570796, 0, 0, 0, 0, 0]),
+)
+""" Kinova Gen3 7 自由度机械臂标准 D-H 参数。来源：Kinova Kortex API。注：末端工具/手眼标定需额外配置。 """
+
 # 注册表：名称 -> RobotConfig
 ROBOT_CONFIGS = {
     "panda": PANDA,
@@ -72,16 +83,6 @@ ROBOT_CONFIGS = {
 # ============================================================
 
 
-# --- Kinova Gen3（7 自由度）---
-# 标准 DH 参数，来源：Kinova Kortex API 官方文档
-# 参考：https://github.com/Kinovarobotics/ros2_kortex
-KINOVA_GEN3 = RobotConfig(
-    a=np.array([0, 0, 0, 0.21038, 0, 0, 0]),
-    alpha=np.array([0.000000, -1.570796, 1.570796, 1.570796, -1.570796, 1.570796, -1.570796]),
-    d=np.array([0.15643, 0.00538, -0.00638, 0.00638, 0.20843, 0.10593, 0]),
-    theta_offset=np.array([0, -1.570796, 0, 0, 0, 0, 0]),
-)
-""" Kinova Gen3 7 自由度机械臂标准 D-H 参数。来源：Kinova Kortex API。注：末端工具/手眼标定需额外配置。 """
 # --- 简化近似版（用于测试）---
 PANDA_HAND_EYE_SIMPLE = HandEyeCalib(
     R=np.array([[1, 0, 0], [0, 0, 1], [0, -1, 0]]),
