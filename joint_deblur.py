@@ -275,7 +275,7 @@ def create_motion_psf(du, dv):
 
     psf = np.zeros((ksize, ksize), dtype=np.float32)
     c = ksize // 2
-    steps = max(int(math.hypot(du, dv) * 2.5), 200)
+    steps = max(int(math.hypot(du, dv) * 5), 400)
 
     for t in np.linspace(0, 1, steps):
         x = int(round(c + t * dv))
