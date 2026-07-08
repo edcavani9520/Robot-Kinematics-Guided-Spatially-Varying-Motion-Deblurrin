@@ -1,4 +1,4 @@
-﻿"""
+"""
 main.py - 主函数：逐帧去模糊pipeline
 =========================================
 功能：
@@ -32,15 +32,15 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from joint_deblur import (
-    compute_psf, compute_psf_map,
+    compute_psf, compute_psf_map, compute_psf_from_pose,
     wiener_deconvolution, richardson_lucy,
     spatial_wiener_deconvolution, spatial_richardson_lucy,
-    PANDA, PANDA_HAND_EYE_SIMPLE,
+    PANDA, PANDA_HAND_EYE_SIMPLE, euler_zyx_to_rotmat,
     get_configs,
 )
 from h5_loader import detect_h5_format, load_episode_h5, load_droid_h5, \
     EpisodeFrameReader, DroidFrameReader
-from evaluate import evaluate
+from evaluate import full_evaluate
 from csv_loader import load_joints_auto, find_nearest_joint, HAND_EYE_MAP
 from robot_configs import get_robot
 
@@ -232,11 +232,11 @@ def _process_frame_list(paths, joint_ts, q_all, qd_all,
             save_deblur_result(output_dir, fi, frame, deblurred, meta,
                                comp_writer, vid_writer)
 
-            mode = meta[0]
+            mode = meta_frame[0]
             if mode == "global":
-                _, psf, du, dv = meta
+                _, psf, du, dv = meta_frame
             else:
-                _, _, du_grid, dv_grid = meta
+                _, _, du_grid, dv_grid = meta_frame
                 du = float(np.abs(du_grid).mean())
                 psf = None
             writer.writerow([
@@ -304,11 +304,11 @@ def _process_video(video_path, joint_ts, q_all, qd_all,
             save_deblur_result(output_dir, frame_idx, gray, deblurred, meta,
                                comp_writer, vid_writer)
 
-            mode = meta[0]
+            mode = meta_frame[0]
             if mode == "global":
-                _, psf, du, dv = meta
+                _, psf, du, dv = meta_frame
             else:
-                _, _, du_grid, dv_grid = meta
+                _, _, du_grid, dv_grid = meta_frame
                 du = float(np.abs(du_grid).mean())
                 psf = None
             writer.writerow([
@@ -441,20 +441,43 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
                 continue
 
             ri = sync_indices[i] if fmt == "episode" else i
-            q = joint_pos[ri]
-            qd = joint_vel[ri]
+            # 用 h5 真值 (tool_pose + tool_twist) 代替 FK+Jacobian
+            p = meta["tool_pose"][ri]
+            t = meta["tool_twist"][ri]
+            R_ee_depth = euler_zyx_to_rotmat(p[3:])
+            if hand_eye_params is not None:
+                cam_pos = p[:3] + R_ee_depth @ hand_eye_params.t
+                R_cam = R_ee_depth @ hand_eye_params.R
+            else:
+                cam_pos = p[:3]
+                R_cam = R_ee_depth
+            opt_axis = R_cam @ np.array([0, 0, 1])
+            opt_z = opt_axis[2]
+            if abs(opt_z) > 0.01:
+                if opt_z > 0:
+                    depth_val = 0.3
+                else:
+                    depth_val = (0.0 - cam_pos[2]) / opt_z
+            else:
+                depth_val = abs(p[2])
+            depth_val = max(depth_val, 0.02)
+            psf, (du, dv) = compute_psf_from_pose(
+                p, t, depth_val,
+                fx=params.get("fx", 733.37), fy=params.get("fy", 733.37),
+                cx=gray.shape[1] // 2, cy=gray.shape[0] // 2,
+                exposure_time=params["exposure_time"],
+                hand_eye=hand_eye_params)
+            deblurred = wiener_deconvolution(gray, psf, K=params["K"])
+            meta_frame = ("global", psf, du, dv)
 
-            deblurred, meta = process_frame(
-                gray, q, qd, params, hand_eye_params, robot)
-
-            save_deblur_result(output_dir, i, gray, deblurred, meta,
+            save_deblur_result(output_dir, i, gray, deblurred, meta_frame,
                                comp_writer, vid_writer)
 
-            mode = meta[0]
+            mode = meta_frame[0]
             if mode == "global":
-                _, psf, du, dv = meta
+                _, psf, du, dv = meta_frame
             else:
-                _, _, du_grid, dv_grid = meta
+                _, _, du_grid, dv_grid = meta_frame
                 du = float(np.abs(du_grid).mean())
                 dv = float(np.abs(dv_grid).mean())
                 psf = None
@@ -482,8 +505,8 @@ def run_h5_pipeline(h5_path, episode_dir, output_dir,
 
     total_time = time.time() - start_time
     print()
-    print(f"  ✅ 处理完成！共处理 {limit} 帧，耗时 {total_time:.1f}s ({limit/total_time:.1f}fps)")
-    print(f"  📂 输出文件目录: {output_dir}/")
+    print(f"  [OK] 处理完成！共处理 {limit} 帧，耗时 {total_time:.1f}s ({limit/total_time:.1f}fps)")
+    print(f"  [DIR] 输出文件目录: {output_dir}/")
     print(f"     ├── blurred/          - 原始模糊帧")
     print(f"     ├── deblurred/        - 去模糊帧")
     print(f"     ├── comparison/       - 左右对比图")

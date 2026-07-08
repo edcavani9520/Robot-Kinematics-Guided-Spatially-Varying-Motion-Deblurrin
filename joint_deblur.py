@@ -4,18 +4,55 @@ joint_deblur.py — 用关节角数据去模糊
 核心功能：从机器人关节角推算 PSF，再反卷积去模糊。
 
 两部分：
-  1. 机器人运动学：关节角 → 相机速度 → 像素位移 → PSF
-  2. 非盲反卷积：已知 PSF → Wiener / RL 去模糊
+    1. 机器人运动学：关节角 → 相机速度 → 像素位移 → PSF
+    2. 非盲反卷积：已知 PSF → Wiener / RL 去模糊
 
 用法示例：
-  from joint_deblur import compute_psf, wiener_deconvolution
+    from joint_deblur import compute_psf, wiener_deconvolution
   
-  psf, (du, dv) = compute_psf(q, q_dot, depth=0.5, fx=500, fy=500)
-  deblurred = wiener_deconvolution(blurred_img, psf, K=0.01)
+    psf, (du, dv) = compute_psf(q, q_dot, depth=0.5, fx=500, fy=500)
+    deblurred = wiener_deconvolution(blurred_img, psf, K=0.01)
 """
 
 import numpy as np
 import math
+
+# === ADDED: Euler ZYX deg -> rotation matrix ===
+def euler_zyx_to_rotmat(rpy_deg):
+    """ZYX Euler angles (deg) -> 3x3 rotation matrix."""
+    r, p, y = np.deg2rad(rpy_deg)
+    cr, sr = math.cos(r), math.sin(r)
+    cp, sp = math.cos(p), math.sin(p)
+    cy, sy = math.cos(y), math.sin(y)
+    return np.array([
+        [cy*cp, cy*sp*sr - sy*cr, cy*sp*cr + sy*sr],
+        [sy*cp, sy*sp*sr + cy*cr, sy*sp*cr - cy*sr],
+        [-sp,   cp*sr,           cp*cr]
+    ])
+
+# === ADDED: PSF from tool_pose + tool_twist (bypasses FK+Jacobian) ===
+def compute_psf_from_pose(tool_pose, tool_twist, depth, fx=500, fy=500,
+                           cx=None, cy=None, exposure_time=0.03, hand_eye=None):
+    """Compute PSF from h5 tool_pose + tool_twist directly."""
+    if cx is None or cy is None:
+        raise ValueError("cx, cy required")
+    R_ee = euler_zyx_to_rotmat(tool_pose[3:])
+    v_ee_base = tool_twist[:3]
+    w_ee_base = tool_twist[3:]
+    v_ee_ee = R_ee.T @ v_ee_base
+    w_ee_ee = R_ee.T @ w_ee_base
+    if hand_eye is not None:
+        R_he, t_he = hand_eye.R, hand_eye.t
+        w_cam = R_he.T @ w_ee_ee
+        v_cam = R_he.T @ v_ee_ee + np.cross(w_cam, R_he.T @ t_he)
+    else:
+        v_cam, w_cam = v_ee_ee, w_ee_ee
+    v_cam_6d = np.concatenate([v_cam, w_cam])
+    L = compute_interaction_matrix(cx, cy, depth, fx, fy, cx, cy)
+    du_dt, dv_dt = L @ v_cam_6d
+    du = du_dt * exposure_time
+    dv = dv_dt * exposure_time
+    return create_motion_psf(du, dv), (du, dv)
 from robot_configs import RobotConfig, HandEyeCalib, PANDA, PANDA_HAND_EYE_SIMPLE, DROID_HAND_EYE_LEFT, DROID_HAND_EYE_RIGHT, get_configs
 # ============================================================
 # 第一部分：机器人运动学 — 从 D-H 到正运动学 / 雅可比
@@ -93,9 +130,9 @@ def get_camera_velocity(q, q_dot, hand_eye=None, robot=None):
     将末端速度转换到相机坐标系。
     
     公式（三步推导）：
-      v_ee_ee = R_ee^T · v_ee,   ω_ee_ee = R_ee^T · ω_ee      （基座系 → 末端系）
-      v_cam_ee = v_ee_ee + ω_ee_ee × t_he                        （附加线速度）
-      v_cam = R_he^T · v_cam_ee,   ω_cam = R_he^T · ω_ee_ee     （末端系 → 相机系）
+        v_ee_ee = R_ee^T · v_ee,   ω_ee_ee = R_ee^T · ω_ee      （基座系 → 末端系）
+        v_cam_ee = v_ee_ee + ω_ee_ee × t_he                        （附加线速度）
+        v_cam = R_he^T · v_cam_ee,   ω_cam = R_he^T · ω_ee_ee     （末端系 → 相机系）
     
     参数:
         q (7,): 关节角（弧度）
@@ -159,16 +196,17 @@ def compute_interaction_matrix(u, v, Z, fx, fy, cx, cy):
 # ============================================================
 
 def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
-               exposure_time=0.03, hand_eye=None, robot=None):
+                exposure_time=0.03, hand_eye=None, robot=None,
+                tool_pose=None, tool_twist=None):
     """
     核心函数：从机器人关节角推算运动模糊 PSF。
     
     完整计算链：
     q, q_dot → 正运动学 → 雅可比 → 末端速度
-             → 手眼变换 → 相机速度 v_cam
-             → 交互矩阵 → 像素速度 (du/dt, dv/dt)
-             → 积分 → 像素位移 (du, dv)
-             → 创建 PSF 核
+                → 手眼变换 → 相机速度 v_cam
+                → 交互矩阵 → 像素速度 (du/dt, dv/dt)
+                → 积分 → 像素位移 (du, dv)
+                → 创建 PSF 核
     
     参数:
         q (7,): 关节角（弧度）
@@ -187,18 +225,21 @@ def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
     if cx is None or cy is None:
         raise ValueError("cx, cy must be provided or set to image center")
     
-    # 步骤 1-2: 关节角 → 相机速度
+    # 如果提供了 tool_pose + tool_twist，跳过 FK+Jacobian，直接用真值
+    if tool_pose is not None and tool_twist is not None:
+        return compute_psf_from_pose(
+            tool_pose, tool_twist, depth,
+            fx=fx, fy=fy, cx=cx, cy=cy,
+            exposure_time=exposure_time,
+            hand_eye=hand_eye
+        )
+    
+    # 否则用 FK + Jacobian（Panda 等标准 DH 机器人）
     v_cam = get_camera_velocity(q, q_dot, hand_eye=hand_eye, robot=robot)
-    
-    # 步骤 3: 交互矩阵
     L = compute_interaction_matrix(cx, cy, depth, fx, fy, cx, cy)
-    
-    # 步骤 4: 像素速度 → 积分 → 像素位移
     du_dt, dv_dt = L @ v_cam
     du = du_dt * exposure_time
     dv = dv_dt * exposure_time
-    
-    # 步骤 5: 从位移创建 PSF
     return create_motion_psf(du, dv), (du, dv)
 
 
@@ -259,11 +300,9 @@ def compute_psf_map(q, q_dot, depth, H, W, fx=500, fy=500,
 
 def create_motion_psf(du, dv):
     """
-    Create a motion blur PSF kernel from pixel displacement (du, dv).
-
-    Draws a line along the motion direction in the spatial domain,
-    then normalizes so total energy = 1.
-
+    Create motion blur PSF using Bresenham's line algorithm.
+    Visits each pixel along the motion path exactly once,
+    producing a uniform-weight kernel with no gaps.
     Parameters:
         du, dv: pixel displacement in x/y during exposure
     Returns:
@@ -272,17 +311,29 @@ def create_motion_psf(du, dv):
     ksize = max(2 * int(abs(du)), 2 * int(abs(dv))) + 1
     ksize = max(ksize, 3)
     ksize = ksize if ksize % 2 == 1 else ksize + 1
-
-    psf = np.zeros((ksize, ksize), dtype=np.float32)
+    psf = np.zeros((ksize, ksize), dtype=np.float64)
     c = ksize // 2
-    steps = max(int(math.hypot(du, dv) * 5), 400)
-
-    for t in np.linspace(0, 1, steps):
-        x = int(round(c + t * dv))
-        y = int(round(c + t * du))
+    x0, y0 = c, c
+    x1 = c + int(round(dv))
+    y1 = c + int(round(du))
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    sx = 1 if x0 < x1 else -1
+    sy = 1 if y0 < y1 else -1
+    err = dx - dy
+    x, y = x0, y0
+    while True:
         if 0 <= x < ksize and 0 <= y < ksize:
             psf[x, y] += 1.0
-
+        if x == x1 and y == y1:
+            break
+        e2 = 2 * err
+        if e2 > -dy:
+            err -= dy
+            x += sx
+        if e2 < dx:
+            err += dx
+            y += sy
     s = psf.sum()
     return psf / s if s > 0 else psf
 
@@ -311,8 +362,29 @@ def pad_psf(psf, shape):
     return pad
 
 
+def mirror_pad(img, pad_rows, pad_cols):
+    """
+    镜像拓延：对图像边界进行镜像反射填充，减少 FFT 边界伪影。
+
+    FFT 假设图像是周期延拓的，实际图像左右/上下边界不连续，
+    镜像拓延让边界平滑过渡，从而抑制反卷积时的振铃伪影。
+
+    Parameters:
+        img: 输入图像 (H, W) 或 (H, W, C)
+        pad_rows: 上下各填充的行数（PSF 高度的一半）
+        pad_cols: 左右各填充的列数（PSF 宽度的一半）
+    Returns:
+        填充后的图像
+    """
+    if img.ndim == 2:
+        return np.pad(img, ((pad_rows, pad_rows), (pad_cols, pad_cols)), mode='reflect')
+    else:
+        return np.pad(img, ((pad_rows, pad_rows), (pad_cols, pad_cols), (0, 0)), mode='reflect')
+
+
 def spatial_wiener_deconvolution(blurred, psf_map, grid_rows, grid_cols,
-                                 K=0.01, overlap=0.25):
+                                    use_mirror_pad=False,
+                                    K=0.01, overlap=0.25):
     """Spatially-varying Wiener deconvolution with overlapping patches and cosine blending."""
     H, W = blurred.shape[:2]
     result = np.zeros_like(blurred, dtype=np.float64)
@@ -329,7 +401,7 @@ def spatial_wiener_deconvolution(blurred, psf_map, grid_rows, grid_cols,
             x1 = min(W, int((c + 1) * cell_w) + overlap_w)
             patch = blurred[y0:y1, x0:x1]
             psf = psf_map[r][c]
-            deblurred_patch = wiener_deconvolution(patch, psf, K=K)
+            deblurred_patch = wiener_deconvolution(patch, psf, K=K, use_mirror_pad=use_mirror_pad)
             wy = 0.5 - 0.5 * np.cos(np.pi * np.arange(y1 - y0) / (y1 - y0))
             wx = 0.5 - 0.5 * np.cos(np.pi * np.arange(x1 - x0) / (x1 - x0))
             w = np.outer(wy, wx)
@@ -340,6 +412,7 @@ def spatial_wiener_deconvolution(blurred, psf_map, grid_rows, grid_cols,
 
 
 def spatial_richardson_lucy(blurred, psf_map, grid_rows, grid_cols,
+                            use_mirror_pad=False,
                             iterations=30, overlap=0.25):
     """Spatially-varying RL deconvolution with overlapping patches and cosine blending."""
     H, W = blurred.shape[:2]
@@ -357,7 +430,7 @@ def spatial_richardson_lucy(blurred, psf_map, grid_rows, grid_cols,
             x1 = min(W, int((c + 1) * cell_w) + overlap_w)
             patch = blurred[y0:y1, x0:x1]
             psf = psf_map[r][c]
-            deblurred_patch = richardson_lucy(patch, psf, iterations=iterations)
+            deblurred_patch = richardson_lucy(patch, psf, iterations=iterations, use_mirror_pad=use_mirror_pad)
             wy = 0.5 - 0.5 * np.cos(np.pi * np.arange(y1 - y0) / (y1 - y0))
             wx = 0.5 - 0.5 * np.cos(np.pi * np.arange(x1 - x0) / (x1 - x0))
             w = np.outer(wy, wx)
@@ -371,7 +444,7 @@ def spatial_richardson_lucy(blurred, psf_map, grid_rows, grid_cols,
 # 第四部分：非盲反卷积（去模糊）
 # ============================================================
 
-def wiener_deconvolution(blurred, psf, K=0.01):
+def wiener_deconvolution(blurred, psf, K=0.01, use_mirror_pad=False):
     """
     维纳滤波去卷积。
     
@@ -385,7 +458,8 @@ def wiener_deconvolution(blurred, psf, K=0.01):
         blurred: 模糊图像 (H, W)
         psf: PSF 核
         K: 噪声-信号比，默认 0.01
-           (K 小→去模糊强，K 大→去噪好)
+            (K 小->去模糊强，K 大->去噪好)
+        use_mirror_pad: 是否开启镜像拓延。默认 False，保留边界信息。
     """
     h, w = blurred.shape[:2]
     H = np.fft.fft2(pad_psf(psf, (h, w)))
@@ -394,7 +468,7 @@ def wiener_deconvolution(blurred, psf, K=0.01):
     return np.clip(result, 0, 255).astype(np.uint8)
 
 
-def richardson_lucy(blurred, psf, iterations=30):
+def richardson_lucy(blurred, psf, iterations=30, use_mirror_pad=False):
     """
     Richardson-Lucy 迭代反卷积。
     
@@ -407,28 +481,46 @@ def richardson_lucy(blurred, psf, iterations=30):
         blurred: 模糊图像 (H, W)
         psf: PSF 核
         iterations: 迭代次数
+        use_mirror_pad: 是否开启镜像拓延。默认 False，保留边界信息。
     """
     b = blurred.astype(np.float64)
     h, w = b.shape[:2]
-    
-    H = np.fft.fft2(pad_psf(psf, (h, w)))
-    Hc = np.conj(H)
-    
-    bound = 1e10
-    x = b.copy()
-    
-    for _ in range(iterations):
-        # 前向投影: H * x_k
-        Hx = np.fft.ifft2(np.fft.fft2(x) * H).real
-        Hx = np.maximum(Hx, 1e-10)
-        
-        # 比值: b / (H * x_k)
-        ratio = np.clip(b / Hx, 0, bound)
-        
-        # 反向投影: conj(H) * ratio
-        upd = np.clip(np.fft.ifft2(np.fft.fft2(ratio) * Hc).real, 0, bound)
-        
-        # 更新
-        x = np.clip(x * upd, 0, None)
-    
-    return np.clip(x, 0, 255).astype(np.uint8)
+    kh, kw = psf.shape
+    pad_y = kh // 2
+    pad_x = kw // 2
+
+    if use_mirror_pad and pad_y > 0 and pad_x > 0:
+        padded = mirror_pad(blurred, pad_y, pad_x)
+        ph, pw = padded.shape[:2]
+        H = np.fft.fft2(pad_psf(psf, (ph, pw)))
+        Hc = np.conj(H)
+        b_pad = padded.astype(np.float64)
+
+        bound = 1e10
+        x = b_pad.copy()
+
+        for _ in range(iterations):
+            Hx = np.fft.ifft2(np.fft.fft2(x) * H).real
+            Hx = np.maximum(Hx, 1e-10)
+            ratio = np.clip(b_pad / Hx, 0, bound)
+            upd = np.clip(np.fft.ifft2(np.fft.fft2(ratio) * Hc).real, 0, bound)
+            x = np.clip(x * upd, 0, None)
+
+        result = x[pad_y:pad_y + h, pad_x:pad_x + w]
+    else:
+        H = np.fft.fft2(pad_psf(psf, (h, w)))
+        Hc = np.conj(H)
+
+        bound = 1e10
+        x = b.copy()
+
+        for _ in range(iterations):
+            Hx = np.fft.ifft2(np.fft.fft2(x) * H).real
+            Hx = np.maximum(Hx, 1e-10)
+            ratio = np.clip(b / Hx, 0, bound)
+            upd = np.clip(np.fft.ifft2(np.fft.fft2(ratio) * Hc).real, 0, bound)
+            x = np.clip(x * upd, 0, None)
+
+        result = x
+
+    return np.clip(result, 0, 255).astype(np.uint8)

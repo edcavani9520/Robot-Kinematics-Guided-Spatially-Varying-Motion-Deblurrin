@@ -1,4 +1,4 @@
-﻿"""
+"""
 evaluate.py — 去模糊效果评估
 ==============================
 包含 PSNR、SSIM、直方图匹配、Tenengrad、Laplacian 锐度等评估函数。
@@ -7,6 +7,7 @@ evaluate.py — 去模糊效果评估
 
 import numpy as np
 import math
+import cv2
 
 
 def psnr(img1, img2):
@@ -159,4 +160,59 @@ def compare_sharpness(img_before, img_after):
             else "-- BLURRIER (Tenengrad)" if ch < 0
             else "   SAME (Tenengrad)"
         ),
+    }
+
+
+def laplacian_variance(img):
+    """Laplacian variance sharpness metric. Higher = sharper."""
+    lap = cv2.Laplacian(img.astype(np.float64), cv2.CV_64F)
+    return float(lap.var())
+
+
+def image_stats(img):
+    """Return dict of basic image statistics."""
+    flat = img.ravel()
+    hist, _ = np.histogram(flat, bins=256, range=(0, 256))
+    hist = hist / flat.size
+    entropy = -np.sum(hist * np.log2(hist + 1e-10))
+    return {
+        "mean": float(img.mean()),
+        "std": float(img.std()),
+        "min": int(img.min()),
+        "max": int(img.max()),
+        "median": float(np.median(img)),
+        "entropy": float(entropy),
+    }
+
+
+def full_evaluate(original, processed):
+    """Complete evaluation: returns all metrics in one dict.
+    
+    Returns:
+        dict with keys: psnr_raw, ssim_raw, psnr_matched, ssim_matched,
+                        laplacian_before, laplacian_after,
+                        tenengrad_before, tenengrad_after,
+                        stats_before, stats_after
+    """
+    results, matched = evaluate(original, processed)
+    lap_b = laplacian_variance(original)
+    lap_a = laplacian_variance(processed)
+    ten_b = tenengrad(original)
+    ten_a = tenengrad(processed)
+    stats_b = image_stats(original)
+    stats_a = image_stats(processed)
+    
+    return {
+        **results,
+        "laplacian_before": lap_b,
+        "laplacian_after": lap_a,
+        "laplacian_change": lap_a - lap_b,
+        "laplacian_improved": lap_a > lap_b,
+        "tenengrad_before": ten_b,
+        "tenengrad_after": ten_a,
+        "tenengrad_change": ten_a - ten_b,
+        "tenengrad_improved": ten_a > ten_b,
+        "stats_before": stats_b,
+        "stats_after": stats_a,
+        "matched_image": matched,
     }

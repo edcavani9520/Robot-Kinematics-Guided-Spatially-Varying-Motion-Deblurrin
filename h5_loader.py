@@ -50,6 +50,8 @@ def load_episode_h5(h5_path):
         cam_ts = f["camera/timestamp"][:]
         joint_pos_deg = f["robot/joint_position"][:]
         joint_vel_degs = f["robot/joint_velocity"][:]
+        tool_pose_arr = f["robot/tool_pose"][:]
+        tool_twist_arr = f["robot/tool_twist"][:]
         robot_ts = f["robot/timestamp"][:]
 
     # 解码第一帧确认尺寸
@@ -80,6 +82,8 @@ def load_episode_h5(h5_path):
         "cam_timestamps": cam_ts,
         "joint_positions": joint_pos,
         "joint_velocities": joint_vel,
+        "tool_pose": tool_pose_arr,
+        "tool_twist": tool_twist_arr,
         "robot_timestamps": robot_ts,
         "sync_indices": sync_indices,
         "num_frames": len(rgb_group),
@@ -145,6 +149,8 @@ def load_droid_h5(h5_path, episode_dir):
         "format": "droid",
         "joint_positions": joint_pos,
         "joint_velocities": joint_vel,
+        "tool_pose": tool_pose_arr,
+        "tool_twist": tool_twist_arr,
         "obs_joint_positions": obs_joint_pos,
         "obs_joint_velocities": obs_joint_vel,
         "camera_serials": camera_serials,

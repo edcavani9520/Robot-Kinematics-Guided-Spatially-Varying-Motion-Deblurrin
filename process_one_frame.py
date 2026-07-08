@@ -16,8 +16,8 @@ FINAL_DIR = r"E:\Vital_document\CUHKSZ\课程文件\ECE4512\Final"
 sys.path.insert(0, FINAL_DIR)
 
 from h5_loader import load_episode_h5, EpisodeFrameReader
-from joint_deblur import compute_psf, wiener_deconvolution
-from evaluate import evaluate, compare_sharpness
+from joint_deblur import euler_zyx_to_rotmat, compute_psf_from_pose, wiener_deconvolution
+from evaluate import full_evaluate
 from robot_configs import get_robot, HAND_EYE_CONFIGS
 
 
@@ -38,6 +38,7 @@ def main():
     exposure = 0.03
     robot_name = "kinova-gen3"
     hand_eye_name = "kinova-gen3"
+    table_z = 0.0
 
     # 解析命令行
     argv = sys.argv[1:]
@@ -81,13 +82,34 @@ def main():
     robot = get_robot(robot_name)
     hand_eye = HAND_EYE_CONFIGS.get(hand_eye_name, None)
 
-    # 5. 计算 PSF
-    psf, (du, dv) = compute_psf(
-        q, qd, depth,
+    # 5. 用 tool_pose 计算深度（沿光轴到桌面）+ tool_twist 算 PSF
+    pose = meta["tool_pose"][ri]
+    twist = meta["tool_twist"][ri]
+    # 计算深度：沿相机光轴到桌面（考虑手眼标定的平移）
+    R_ee_depth = euler_zyx_to_rotmat(pose[3:])
+    if hand_eye is not None:
+        cam_pos = pose[:3] + R_ee_depth @ hand_eye.t
+        R_cam = R_ee_depth @ hand_eye.R
+    else:
+        cam_pos = pose[:3]
+        R_cam = R_ee_depth
+    opt_axis = R_cam @ np.array([0, 0, 1])
+    opt_z = opt_axis[2]
+    if abs(opt_z) > 0.01:
+        if opt_z > 0:
+            depth = 0.3
+        else:
+            depth = (table_z - cam_pos[2]) / opt_z
+    else:
+        depth = abs(pose[2] - table_z)
+    depth = max(depth, 0.02)
+    print(f"  depth={depth:.3f}m (camZ={cam_pos[2]:.3f}, opt_z={opt_z:.3f})")
+    psf, (du, dv) = compute_psf_from_pose(
+        pose, twist, depth,
         fx=fx, fy=fy,
         cx=w // 2, cy=h // 2,
         exposure_time=exposure,
-        hand_eye=hand_eye, robot=robot
+        hand_eye=hand_eye
     )
     print(f"Pixel displacement: du={du:.2f}, dv={dv:.2f}")
     print(f"PSF kernel: {psf.shape[0]}x{psf.shape[1]}")
@@ -96,59 +118,42 @@ def main():
     deblurred = wiener_deconvolution(frame_gray, psf, K=K)
 
     # 7. 评估原图 vs 处理后图像
-    results, matched = evaluate(frame_gray, deblurred)
-
-    # ---- sharpness metrics (no-reference) ----
-    lap_res = compare_sharpness(frame_gray, deblurred)
-    lap_orig = lap_res["before"]
-    lap_deb  = lap_res["after"]
-    lap_ch   = lap_res["change"]
-    j1       = lap_res["judgment"].strip()
-
-    sobelx_orig = cv2.Sobel(frame_gray, cv2.CV_64F, 1, 0)
-    sobely_orig = cv2.Sobel(frame_gray, cv2.CV_64F, 0, 1)
-    ten_orig = (sobelx_orig**2 + sobely_orig**2).sum()
-
-    sobelx_deb = cv2.Sobel(deblurred, cv2.CV_64F, 1, 0)
-    sobely_deb = cv2.Sobel(deblurred, cv2.CV_64F, 0, 1)
-    ten_deb = (sobelx_deb**2 + sobely_deb**2).sum()
-
-    # ---- statistics ----
-    import math
-    orig_hist, _ = np.histogram(frame_gray, bins=256, range=(0, 255), density=True)
-    deb_hist, _ = np.histogram(deblurred, bins=256, range=(0, 255), density=True)
-    orig_ent = -np.sum(orig_hist * np.log2(orig_hist + 1e-10))
-    deb_ent  = -np.sum(deb_hist  * np.log2(deb_hist  + 1e-10))
+    # 7. 完整评估（使用 evaluate.py 的 full_evaluate）
+    eval_all = full_evaluate(frame_gray, deblurred)
+    s_b = eval_all["stats_before"]
+    s_a = eval_all["stats_after"]
+    j1 = '++ SHARPER' if eval_all['laplacian_change'] > 0 else '-- BLURRIER'
+    j2 = '++ SHARPER' if eval_all['tenengrad_change'] > 0 else '-- BLURRIER'
 
     print(f"\n{'='*86}")
     print('  Quantitative Evaluation: Original (blurry) vs Deblurred')
     print(f"{'='*86}")
     print(f"  {'[1] No-Ref Sharpness Metrics':<40}{'Original':>14}{'Deblurred':>14}{'Change':>14}{'Judgment':>12}")
     print(f"  {'-'*85}")
-    ten_ch = ten_deb - ten_orig
-    j2 = 'SHARPER' if ten_ch > 0 else 'BLURRIER' if ten_ch < 0 else 'SAME'
-    print(f"  {'Laplacian Variance':<40}{lap_orig:>14.2f}{lap_deb:>14.2f}{lap_ch:>+14.2f}{j1:>12}")
-    print(f"  {'Tenengrad (gradient sum)':<40}{ten_orig:>14.2e}{ten_deb:>14.2e}{ten_ch:>+14.2e}{j2:>12}")
+    eval_all['tenengrad_change'] = eval_all['tenengrad_after'] - eval_all['tenengrad_before']
+    j2 = 'SHARPER' if eval_all['tenengrad_change'] > 0 else 'BLURRIER' if eval_all['tenengrad_change'] < 0 else 'SAME'
+    print(f"  {'Laplacian Variance':<40}{eval_all['laplacian_before']:>14.2f}{eval_all['laplacian_after']:>14.2f}{eval_all['laplacian_change']:>+14.2f}{eval_all['laplacian_change']:>+14.2f}junk")
+    print(f"  {'Tenengrad (gradient sum)':<40}{eval_all['tenengrad_before']:>14.2e}{eval_all['tenengrad_after']:>14.2e}{eval_all['tenengrad_change']:>+14.2e}{j2:>12}")
     print(f"  {'-'*85}")
     print(f"  {'[2] Image Statistics':<40}{'Original':>14}{'Deblurred':>14}{'Change':>14}{'Unit':>12}")
     print(f"  {'-'*85}")
-    print(f"  {'Mean':<40}{frame_gray.mean():>14.2f}{deblurred.mean():>14.2f}{(deblurred.mean()-frame_gray.mean()):>+14.2f}{'gray level':>12}")
-    print(f"  {'Std Dev':<40}{frame_gray.std():>14.2f}{deblurred.std():>14.2f}{(deblurred.std()-frame_gray.std()):>+14.2f}{'gray level':>12}")
-    print(f"  {'Min':<40}{int(frame_gray.min()):>14d}{int(deblurred.min()):>14d}{int(deblurred.min())-int(frame_gray.min()):>+14d}{'gray level':>12}")
-    print(f"  {'Max':<40}{int(frame_gray.max()):>14d}{int(deblurred.max()):>14d}{int(deblurred.max())-int(frame_gray.max()):>+14d}{'gray level':>12}")
-    print(f"  {'Median':<40}{np.median(frame_gray):>14.1f}{np.median(deblurred):>14.1f}{(np.median(deblurred)-np.median(frame_gray)):>+14.1f}{'gray level':>12}")
-    print(f"  {'Entropy':<40}{orig_ent:>14.4f}{deb_ent:>14.4f}{(deb_ent-orig_ent):>+14.4f}{'bits':>12}")
+    print(f"  {'Mean':<40}{s_b['mean']:>14.2f}{s_a['mean']:>14.2f}{(s_a['mean']-s_b['mean']):>+14.2f}{'gray level':>12}")
+    print(f"  {'Std Dev':<40}{s_b['std']:>14.2f}{s_a['std']:>14.2f}{(s_a['std']-s_b['std']):>+14.2f}{'gray level':>12}")
+    print(f"  {'Min':<40}{s_b['min']:>14d}{s_a['min']:>14d}{s_a['min']-s_b['min']:>+14d}{'gray level':>12}")
+    print(f"  {'Max':<40}{s_b['max']:>14d}{s_a['max']:>14d}{s_a['max']-s_b['max']:>+14d}{'gray level':>12}")
+    print(f"  {'Median':<40}{s_b['median']:>14.1f}{s_a['median']:>14.1f}{(s_a['median']-s_b['median']):>+14.1f}{'gray level':>12}")
+    print(f"  {'Entropy':<40}{s_b['entropy']:>14.4f}{s_a['entropy']:>14.4f}{(s_a['entropy']-s_b['entropy']):>+14.4f}{'bits':>12}")
     print(f"  {'-'*85}")
-    pq = 'EXCELLENT' if results['PSNR_raw'] > 40 else 'GOOD' if results['PSNR_raw'] > 30 else 'FAIR'
-    sq = 'EXCELLENT' if results['SSIM_raw'] > 0.99 else 'GOOD' if results['SSIM_raw'] > 0.9 else 'FAIR'
-    pmq = 'EXCELLENT' if results['PSNR_matched'] > 50 else 'GOOD' if results['PSNR_matched'] > 40 else 'FAIR'
-    smq = 'EXCELLENT' if results['SSIM_matched'] > 0.99 else 'GOOD' if results['SSIM_matched'] > 0.9 else 'FAIR'
+    pq = 'EXCELLENT' if eval_all['PSNR_raw'] > 40 else 'GOOD' if eval_all['PSNR_raw'] > 30 else 'FAIR'
+    sq = 'EXCELLENT' if eval_all['SSIM_raw'] > 0.99 else 'GOOD' if eval_all['SSIM_raw'] > 0.9 else 'FAIR'
+    pmq = 'EXCELLENT' if eval_all['PSNR_matched'] > 50 else 'GOOD' if eval_all['PSNR_matched'] > 40 else 'FAIR'
+    smq = 'EXCELLENT' if eval_all['SSIM_matched'] > 0.99 else 'GOOD' if eval_all['SSIM_matched'] > 0.9 else 'FAIR'
     print(f"  {'[3] Pairwise Metrics (blurry vs deblurred)':<40}{'Value':>23}{'Assessment':>12}")
     print(f"  {'-'*85}")
-    print(f"  {'PSNR_raw':<40}{results['PSNR_raw']:>14.2f} dB{'':>7}{pq:>12}")
-    print(f"  {'SSIM_raw':<40}{results['SSIM_raw']:>14.4f}{'':>19}{sq:>12}")
-    print(f"  {'PSNR_matched (hist matched)':<40}{results['PSNR_matched']:>14.2f} dB{'':>7}{pmq:>12}")
-    print(f"  {'SSIM_matched (hist matched)':<40}{results['SSIM_matched']:>14.4f}{'':>19}{smq:>12}")
+    print(f"  {'PSNR_raw':<40}{eval_all['PSNR_raw']:>14.2f} dB{'':>7}{pq:>12}")
+    print(f"  {'SSIM_raw':<40}{eval_all['SSIM_raw']:>14.4f}{'':>19}{sq:>12}")
+    print(f"  {'PSNR_matched (hist matched)':<40}{eval_all['PSNR_matched']:>14.2f} dB{'':>7}{pmq:>12}")
+    print(f"  {'SSIM_matched (hist matched)':<40}{eval_all['SSIM_matched']:>14.4f}{'':>19}{smq:>12}")
     print(f"  {'-'*85}")
     print(f"  {'Pixel displacement (du, dv)':<40}({du:.1f}, {dv:.1f}){'':>27}pixels")
     print(f"  {'PSF kernel size':<40}{psf.shape[0]}x{psf.shape[1]}{'':>31}")
@@ -173,8 +178,8 @@ def main():
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
 
     info = (f"depth={depth}m  exp={exposure}s  du={du:.1f}  dv={dv:.1f}  |  " +
-            f"PSNR={results['PSNR_raw']:.1f}dB  SSIM={results['SSIM_raw']:.3f}  |  "
-            f"orig mean={frame_gray.mean():.0f}  deb mean={deblurred.mean():.0f}")
+            f"PSNR={eval_all['PSNR_raw']:.1f}dB  SSIM={eval_all['SSIM_raw']:.3f}  |  "
+            f"orig mean={s_b['mean']:.0f}  deb mean={s_a['mean']:.0f}")
     cv2.putText(canvas, info, (10, h + label_h - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.4, (80, 80, 80), 1)
 
