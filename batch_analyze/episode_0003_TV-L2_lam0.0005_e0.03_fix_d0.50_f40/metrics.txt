@@ -1,0 +1,10 @@
+Frame: 40
+Method: TV-L2
+Params: lam0.0005_e0.03
+Depth: 0.500m
+Displacement: du=-2.06 dv=6.46
+PSF: 13x13
+Laplacian: 941.93 -> 4526.11 (3584.18)
+Tenengrad: 3.63e+08 -> 3.41e+09 (3.04e+09)
+PSNR: 16.92 dB
+SSIM: 0.7716

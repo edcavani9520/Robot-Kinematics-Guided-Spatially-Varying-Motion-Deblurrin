@@ -26,6 +26,8 @@ def detect_h5_format(h5_path):
             return "droid"
         if "camera" in keys and "robot" in keys:
             return "episode"
+        if "action" in keys and "obs" in keys and "timestamps" in keys:
+            return "kinova"
     return "unknown"
 
 
@@ -37,47 +39,80 @@ def load_episode_h5(h5_path):
     """
     读取 episode_XXXX.h5 格式。
 
-    h5 结构:
-      camera/rgb             (N,)  object     — JPEG 压缩字节
-      camera/timestamp       (N,)  float64    — 时间戳 (秒)
-      robot/joint_position   (M, 7) float64   — 关节角 (度)
-      robot/joint_velocity   (M, 7) float64   — 关节角速度 (度/秒)
-      robot/timestamp        (M,)  float64    — 时间戳 (秒)
-      robot/tool_pose        (M, 6) float64   — tool pose (参考)
+    支持两种格式:
+    [新格式] camera/rgb + robot/tool_twist
+    [旧格式] obs/image + obs/proprio + action
     """
     with h5py.File(str(h5_path), "r") as f:
-        rgb_group = f["camera/rgb"][:]
-        cam_ts = f["camera/timestamp"][:]
-        joint_pos_deg = f["robot/joint_position"][:]
-        joint_vel_degs = f["robot/joint_velocity"][:]
-        tool_pose_arr = f["robot/tool_pose"][:]
-        tool_twist_arr = f["robot/tool_twist"][:]
-        robot_ts = f["robot/timestamp"][:]
+        if "camera" in f:
+            # === 新格式：带 tool_twist ===
+            rgb_group = f["camera/rgb"][:]
+            cam_ts = f["camera/timestamp"][:]
+            joint_pos_deg = f["robot/joint_position"][:]
+            joint_vel_degs = f["robot/joint_velocity"][:]
+            tool_pose_arr = f["robot/tool_pose"][:]
+            tool_twist_arr = f["robot/tool_twist"][:]
+            robot_ts = f["robot/timestamp"][:]
 
-    # 解码第一帧确认尺寸
-    sample_img = cv2.imdecode(rgb_group[0], cv2.IMREAD_COLOR)
-    if sample_img is None:
-        raise RuntimeError("无法解码 camera/rgb 中的 JPEG 图像")
-    H, W = sample_img.shape[:2]
+            sample_img = cv2.imdecode(rgb_group[0], cv2.IMREAD_COLOR)
+            if sample_img is None:
+                raise RuntimeError("无法解码 camera/rgb 中的 JPEG 图像")
+            H, W = sample_img.shape[:2]
 
-    # 关节角转弧度
-    joint_pos = np.deg2rad(joint_pos_deg)
-    joint_vel = np.deg2rad(joint_vel_degs)
+            joint_pos = np.deg2rad(joint_pos_deg)
+            joint_vel = np.deg2rad(joint_vel_degs)
 
-    # 时间同步：对每个 camera 帧找最近的 robot 时间点
-    sync_indices = np.searchsorted(robot_ts, cam_ts)
-    sync_indices = np.clip(sync_indices, 0, len(robot_ts) - 1)
-    for i in range(len(cam_ts)):
-        idx = sync_indices[i]
-        if idx > 0 and abs(cam_ts[i] - robot_ts[idx - 1]) < abs(cam_ts[i] - robot_ts[idx]):
-            sync_indices[i] = idx - 1
+            sync_indices = np.searchsorted(robot_ts, cam_ts)
+            sync_indices = np.clip(sync_indices, 0, len(robot_ts) - 1)
+            for i in range(len(cam_ts)):
+                idx = sync_indices[i]
+                if idx > 0 and abs(cam_ts[i] - robot_ts[idx - 1]) < abs(cam_ts[i] - robot_ts[idx]):
+                    sync_indices[i] = idx - 1
 
-    print(f"  [h5] Episode 格式: {len(rgb_group)} 帧, {W}×{H}, "
-          f"{len(joint_pos)} 个机器人时间点")
-    print(f"  [h5] 时间同步: {len(np.unique(sync_indices))}/{len(cam_ts)} 帧已匹配")
+            print(f"  [h5] Episode 格式: {len(rgb_group)} 帧, {W}x{H}, "
+                  f"{len(joint_pos)} 个机器人时间点")
+            print(f"  [h5] 时间同步: {len(np.unique(sync_indices))}/{len(cam_ts)} 帧已匹配")
+            fmt_str = "episode"
+        elif "obs" in f:
+            # === 旧格式：obs/image + obs/proprio (无 tool_twist) ===
+            rgb_img = f["obs/image"][:]        # (N, H, W) uint8 grayscale
+            proprio = f["obs/proprio"][:]       # (N, 8) float64
+            action = f["action"][:]              # (N, 7) float64
+            robot_ts = f["timestamps"][:]
+
+            N, H, W = rgb_img.shape
+
+            # proprio[:, :7] = te joint positions (deg), 7=gripper
+            joint_pos_deg = proprio[:, :7].copy()
+            # Compute velocity from finite diff with angle wrapping
+            diff_raw = np.diff(joint_pos_deg, axis=0)
+            diff = (diff_raw + 180) % 360 - 180  # unwrap 360 deg
+            dt = np.diff(robot_ts)[:, np.newaxis]  # (N-1,1)
+            vel = np.zeros_like(joint_pos_deg)
+            vel[0] = diff[0] / dt[0]
+            vel[1:-1] = (diff[:-1] + diff[1:]) / (dt[:-1] + dt[1:])
+            vel[-1] = diff[-1] / dt[-1]
+            joint_vel_degs = vel
+
+            joint_pos = np.deg2rad(joint_pos_deg)
+            joint_vel = np.deg2rad(joint_vel_degs)
+            # 图像存为 list，EpisodeFrameReader 会自动检测类型
+            rgb_group = [rgb_img[i] for i in range(N)]
+
+            tool_pose_arr = None
+            tool_twist_arr = None
+            sync_indices = np.arange(N)
+            cam_ts = robot_ts
+
+            print(f"  [h5] 旧格式: {N} 帧, {W}x{H} grayscale, "
+                  f"{len(joint_pos)} 个机器人时间点")
+            print(f"  [h5] 帧和动作已严格对齐, tool_twist=无 (将从关节角计算)")
+            fmt_str = "old_format"
+        else:
+            raise ValueError(f"未知的 h5 格式: {list(f.keys())}")
 
     return {
-        "format": "episode",
+        "format": fmt_str,
         "rgb_bytes": rgb_group,
         "cam_timestamps": cam_ts,
         "joint_positions": joint_pos,
@@ -86,16 +121,10 @@ def load_episode_h5(h5_path):
         "tool_twist": tool_twist_arr,
         "robot_timestamps": robot_ts,
         "sync_indices": sync_indices,
-        "num_frames": len(rgb_group),
+        "num_frames": len(rgb_group) if hasattr(rgb_group, "__len__") else rgb_group.shape[0],
         "H": H,
         "W": W,
     }
-
-
-# ============================================================
-# DROID 格式 (trajectory.h5)
-# ============================================================
-
 def load_droid_h5(h5_path, episode_dir):
     """
     读取 DROID trajectory.h5 格式 + 外置 MP4。
@@ -176,7 +205,23 @@ class EpisodeFrameReader:
     def read_frame(self, idx):
         if idx >= self.N:
             return None
-        return cv2.imdecode(self.rgb_bytes[idx], cv2.IMREAD_COLOR)
+        raw = self.rgb_bytes[idx]
+        # Support: 1) h5py uint8 JPEG bytes  2) external bytes  3) decoded ndarray
+        if isinstance(raw, np.ndarray) and raw.dtype == np.uint8:
+            if raw.ndim == 1:
+                return cv2.imdecode(raw, cv2.IMREAD_COLOR)
+            elif raw.ndim == 2:
+                return cv2.cvtColor(raw, cv2.COLOR_GRAY2BGR)
+            elif raw.ndim >= 3:
+                c = raw.shape[2]
+                if c >= 3:
+                    return raw[..., :3]
+                else:
+                    return cv2.cvtColor(raw[..., 0], cv2.COLOR_GRAY2BGR)
+        elif isinstance(raw, (bytes, np.bytes_)):
+            return cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
+        else:
+            raise TypeError("Unknown image format")
 
     def close(self):
         pass
@@ -204,3 +249,77 @@ class DroidFrameReader:
 
     def close(self):
         self.cap.release()
+
+
+# ============================================================
+# Kinova 格式 (RLDX-style episode_XXXX.h5)
+# ============================================================
+
+def load_kinova_h5(h5_path):
+    """
+    读取 RLDX 风格 Kinova h5 格式。
+
+    h5 结构:
+      obs/image          (N, H, W) uint8      — 灰度图像（已解码）
+      obs/proprio        (N, 8) float64       — 关节角度(°) + gripper
+      action             (N, 7) float64       — twist velocity [vx,vy,vz,wx,wy,wz]
+      timestamps         (N,) float64         — 时间戳
+
+    Root attrs: camera_fps, camera_height, camera_width, robot_type ...
+    """
+    with h5py.File(str(h5_path), "r") as f:
+        images = f["obs/image"][:]          # (N, H, W) uint8
+        proprio = f["obs/proprio"][:]       # (N, 8) float64
+        action = f["action"][:]             # (N, 7) float64
+        timestamps = f["timestamps"][:]     # (N,) float64
+        camera_fps = f.attrs.get("camera_fps", 10.0)
+
+    N, H, W = images.shape
+
+    # 关节角度: 前7列 (度) → 弧度
+    joint_pos_deg = proprio[:, :7]
+    joint_pos = np.deg2rad(joint_pos_deg)
+
+    # 通过有限差分计算关节速度 (rad/s)
+    dt = np.diff(timestamps, prepend=timestamps[0])
+    dt = np.maximum(dt, 1e-6)
+    joint_vel_deg = np.diff(joint_pos_deg, axis=0, prepend=joint_pos_deg[:1])
+    joint_vel_deg[0] = 0
+    joint_vel = np.deg2rad(joint_vel_deg / dt[:, np.newaxis])
+
+    # twist velocity: 直接用 action 数据
+    tool_twist = action[:, :6]   # 前6列: [vx,vy,vz,wx,wy,wz]; 第7列是gripper
+    # tool_pose: 此格式没有存储，设为零 (旋转部分为单位阵)
+    tool_pose = np.zeros((N, 6))
+
+    print(f"  [h5] Kinova格式: {N}帧, {W}x{H}, {7}个关节, camera_fps={camera_fps}")
+
+    return {
+        "format": "kinova",
+        "images": images,
+        "joint_positions": joint_pos,
+        "joint_velocities": joint_vel,
+        "tool_pose": tool_pose,
+        "tool_twist": tool_twist,
+        "timestamps": timestamps,
+        "num_frames": N,
+        "H": H,
+        "W": W,
+        "camera_fps": camera_fps,
+    }
+
+
+class KinovaFrameReader:
+    """直接从 kinova h5 的灰度图像数组读取帧"""
+    def __init__(self, images):
+        self.images = images
+        self.N = len(images)
+
+    def read_frame(self, idx):
+        if idx >= self.N:
+            return None
+        # 灰度 → BGR 3通道，以便和下游接口一致
+        return cv2.cvtColor(self.images[idx], cv2.COLOR_GRAY2BGR)
+
+    def close(self):
+        pass

@@ -1,0 +1,10 @@
+Frame: 40
+Method: Wiener
+Params: K0.01
+Depth: 0.500m
+Displacement: du=-2.06 dv=6.46
+PSF: 13x13
+Laplacian: 941.93 -> 12899.05 (11957.12)
+Tenengrad: 3.63e+08 -> 2.20e+09 (1.84e+09)
+PSNR: 17.94 dB
+SSIM: 0.8177

@@ -143,6 +143,10 @@ def evaluate(original, processed):
         "laplacian_after": l_after,
         "laplacian_change": l_change,
         "laplacian_improved": l_change > 0,
+        "tv_before": total_variation(original),
+        "tv_after": total_variation(processed),
+        "tv_change": total_variation(processed) - total_variation(original),
+        "edge_ratio": edge_strength_ratio(original, processed),
     }, matched
 
 
@@ -163,8 +167,36 @@ def compare_sharpness(img_before, img_after):
     }
 
 
+def total_variation(img):
+    """TV norm: sum of abs(gradient). Ringing INCREASES TV.
+    Good deblur: sharper WITHOUT large TV increase."""
+    gx = np.diff(img.astype(np.float64), axis=1)
+    gy = np.diff(img.astype(np.float64), axis=0)
+    h, w = gx.shape[0], gy.shape[1]
+    return float(np.sum(np.abs(gx[:, :w])) + np.sum(np.abs(gy[:h, :])))
+
+
+def edge_strength_ratio(original, deblurred):
+    """Strong-edge boost vs weak-region boost.
+    Uses cv2.Sobel for correct pixel-aligned gradients.
+    >1.5 = edges enhanced more than ringing (good)
+    <1.0 = ringing dominates (bad)"""
+    go = cv2.Sobel(original.astype(np.float64), cv2.CV_64F, 1, 0, ksize=3)
+    go = np.sqrt(go**2 + cv2.Sobel(original.astype(np.float64), cv2.CV_64F, 0, 1, ksize=3)**2)
+    gd = cv2.Sobel(deblurred.astype(np.float64), cv2.CV_64F, 1, 0, ksize=3)
+    gd = np.sqrt(gd**2 + cv2.Sobel(deblurred.astype(np.float64), cv2.CV_64F, 0, 1, ksize=3)**2)
+    r_orig = go / (go.mean() + 1e-10)
+    r_deb = gd / (gd.mean() + 1e-10)
+    strong = r_orig > 1.5
+    weak = r_orig < 0.5
+    if strong.sum() > 5 and weak.sum() > 5:
+        sb = r_deb[strong].mean() / r_orig[strong].mean()
+        wb = r_deb[weak].mean() / r_orig[weak].mean()
+        return float(sb / (wb + 1e-10))
+    return 1.0
+
 def laplacian_variance(img):
-    """Laplacian variance sharpness metric. Higher = sharper."""
+    """Laplacian variance. Higher = sharper BUT also higher with ringing."""
     lap = cv2.Laplacian(img.astype(np.float64), cv2.CV_64F)
     return float(lap.var())
 
@@ -195,23 +227,10 @@ def full_evaluate(original, processed):
                         stats_before, stats_after
     """
     results, matched = evaluate(original, processed)
-    lap_b = laplacian_variance(original)
-    lap_a = laplacian_variance(processed)
-    ten_b = tenengrad(original)
-    ten_a = tenengrad(processed)
     stats_b = image_stats(original)
     stats_a = image_stats(processed)
-    
     return {
         **results,
-        "laplacian_before": lap_b,
-        "laplacian_after": lap_a,
-        "laplacian_change": lap_a - lap_b,
-        "laplacian_improved": lap_a > lap_b,
-        "tenengrad_before": ten_b,
-        "tenengrad_after": ten_a,
-        "tenengrad_change": ten_a - ten_b,
-        "tenengrad_improved": ten_a > ten_b,
         "stats_before": stats_b,
         "stats_after": stats_a,
         "matched_image": matched,

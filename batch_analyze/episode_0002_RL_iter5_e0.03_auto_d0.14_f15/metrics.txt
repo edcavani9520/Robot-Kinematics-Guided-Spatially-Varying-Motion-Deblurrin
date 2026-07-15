@@ -1,0 +1,10 @@
+Frame: 15
+Method: RL
+Params: iter5_e0.03
+Depth: 0.144m
+Displacement: du=0.00 dv=0.00
+PSF: 3x3
+Laplacian: 364.17 -> 368.68 (4.51)
+Tenengrad: 1.70e+09 -> 1.70e+09 (3.58e+06)
+PSNR: 52.42 dB
+SSIM: 0.9999

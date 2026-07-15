@@ -1,225 +1,151 @@
-﻿# Robot-Kinematics-Guided Spatially-Varying Motion Deblurring
+# Robot-Kinematics-Guided Motion Deblurring
 
-利用 Franka Panda / Kinova Gen3 机器人关节角数据，通过正向运动学推算**腕载相机**速度，为图像中每个像素区域计算空间变化的运动模糊 PSF，再通过非盲反卷积（Wiener / Richardson-Lucy）去除运动模糊。
+利用机器人末端速度（tool_twist）推算腕载相机运动，通过 Bresenham 光栅化 + Wiener / TV-L2 ADMM 反卷积去除运动模糊。
 
-## 概述
+## 快速测试
 
-传统去模糊方法假设全图模糊均匀（单一 PSF），但在机器人场景中，相机安装在机械臂末端，**旋转运动导致图像不同区域的模糊方向和长度不同**。
+`ash
+# 单帧 Wiener
+python process_one_frame.py --frame 77 --K 0.03
 
-本项目使用机器人运动学精确建模这一过程，支持**全局单一 PSF** 与**空间变化 PSF 网格**两种模式。
+# 单帧 TV-L2（推荐，无振铃）
+python process_one_frame.py --frame 77 --method tv --tv-lam 0.002
+
+# 批量评估
+python batch_analyze.py --h5 episode_0001.h5 --K 0.03
+
+# 全流水线
+python pipeline.py --h5 episode_0001.h5 --robot kinova-gen3 --hand-eye kinova-gen3
+`
+
+## 流水线
 
 `
-关节角 q  ──→  正运动学  ──→  雅可比  ──→  末端速度
-                          │
-                   手眼标定 ────────→ 相机速度 v_cam
-                          │
-                   交互矩阵（像素-速度雅可比）──→ 像素位移 (du, dv)
-                          │
-                       运动模糊 PSF
-                          │
-                    Wiener / RL 反卷积
-                          │
-                       去模糊图像
+h5 tool_twist + tool_pose ──→ 手眼标定 ──→ 相机速度 v_cam
+                                      │
+                               交互矩阵 ──→ 像素位移 (du, dv)
+                                      │
+                          Bresenham 光栅化 → 运动模糊 PSF
+                                      │
+                          ┌─ Wiener (快速, DC补偿)
+                          ├─ TV-L2 ADMM (无振铃, 推荐)
+                          └─ RL (最锐, 慢)
 `
 
 ## 文件结构
 
 `
-├── main.py              主函数 —— 逐帧去模糊 pipeline
-│                        输入：--video / --frames / --h5 + --joints
-│                        输出：去模糊帧 + 视频 + 对比图 + PSF 报告
-├── joint_deblur.py      核心算法：关节角 → PSF → 反卷积
-│                        含 compute_psf / compute_psf_map /
-│                        wiener_deconvolution / richardson_lucy /
-│                        spatial_wiener / spatial_rl
-├── robot_configs.py     机器人 DH 参数与手眼标定注册中心
-│                        支持：panda (Franka), kinova-gen3
-│                        手眼：simple, droid-left, droid-right, kinova-gen3
-├── csv_loader.py        CSV 关节角数据加载器
-│                        自动识别标准格式与 DROID action 格式
-├── h5_loader.py         DROID / Episode h5 数据加载器
-│                        自动检测格式、帧同步、JPEG 内嵌解码
-├── evaluate.py          评估工具：PSNR, SSIM, 直方图匹配, 配准
-└── sync.sh              Git 同步脚本
+├── pipeline.py            主流水线 (仅 H5 模式)
+├── process_one_frame.py   单帧去模糊 + 对比图 + 评估
+├── batch_analyze.py       批量评估 (h5 遍历)
+├── joint_deblur.py        核心算法：PSF → 反卷积
+│                          Wiener / TV-L2 / RL + Bresenham
+├── robot_configs.py       机器人 DH 参数 + 手眼标定
+├── h5_loader.py           H5 数据加载器 (Kinova/DROID/Episode)
+└── evaluate.py            评估：PSNR, SSIM, 锐度
 `
 
 ## 环境要求
 
 `ash
-pip install numpy opencv-python h5py
+pip install numpy opencv-python h5py scipy
 `
-
----
-
-## 用法
-
-### 1. 图片帧 + joints CSV（推荐用于 DROID）
-
-`ash
-python main.py \
-  --frames ./output_frames/ \
-  --joints ./output_frames/actions.csv \
-  --hand-eye droid-left \
-  --output deblur_output
-`
-
-相机参数默认已设为 **DROID ZED 内参（fx=fy=733.37）**，无需额外指定。
-
-指定右相机：
-
-`ash
-python main.py \
-  --frames ./output_frames/ \
-  --joints ./output_frames/actions.csv \
-  --hand-eye droid-right \
-  --output deblur_output
-`
-
-### 2. h5 格式输入（自动检测 DROID / Episode）
-
-`ash
-# DROID trajectory.h5
-python main.py \
-  --h5 episode_0002.h5 \
-  --episode-dir ./recordings/ \
-  --camera 17368348 \
-  --output deblur_output
-
-# Episode h5（JPEG 内嵌）
-python main.py \
-  --h5 episode_0002.h5 \
-  --output deblur_output
-`
-
-### 3. 视频文件
-
-`ash
-python main.py \
-  --video blurry.mp4 \
-  --joints joints.csv \
-  --hand-eye simple \
-  --output deblur_output
-
-# 带真值评估
-python main.py \
-  --video blurry.mp4 \
-  --joints joints.csv \
-  --gt clean.mp4 \
-  --output deblur_output
-`
-
-### 4. 空间变化 PSF（--spatial）
-
-对图像进行网格划分，每格计算独立的 PSF，边缘重叠分块反卷积：
-
-`ash
-python main.py \
-  --video blurry.mp4 \
-  --joints joints.csv \
-  --spatial \
-  --grid-rows 4 --grid-cols 4 --overlap 0.25 \
-  --output deblur_output
-`
-
-### 5. 切换机器人（--robot）
-
-`ash
-# 使用 Kinova Gen3
-python main.py \
-  --video blurry.mp4 \
-  --joints joints.csv \
-  --robot kinova-gen3 \
-  --hand-eye kinova-gen3 \
-  --output deblur_output
-`
-
----
 
 ## 参数说明
 
+### 基本参数
+
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
-| --video | — | 输入视频路径 |
-| --frames | — | 输入图片目录 |
-| --h5 | — | h5 文件路径（自动检测 DROID / Episode 格式） |
-| --joints | — | 关节角 CSV（--video / --frames 模式必填） |
-| --episode-dir | — | Episode 目录（DROID h5 模式，自动找 recordings/MP4） |
-| --camera | — | 摄像头 serial（仅 DROID h5 格式） |
-| --gt | — | Ground truth 视频（仅 --video 模式） |
-| --output | deblur_output | 输出目录 |
-| --robot | panda | 机器人配置（panda / kinova-gen3） |
-| --hand-eye | simple | 手眼标定（simple / droid-left / droid-right / kinova-gen3） |
-| --fx, --fy | 733.37 | 焦距（DROID ZED 默认） |
-| --depth | 0.5 | 物距（米），越大 PSF 越小 |
-| --exposure | 0.03 | 曝光时间（秒），越长模糊越强 |
-| --method | wiener | 反卷积方法（wiener / rl） |
-| --K | 0.01 | Wiener 参数，越小去模糊越强（噪声放大也越大） |
-| --rl-iters | 30 | RL 迭代次数（仅 method=rl） |
-| --max-frames | 全部 | 限制处理帧数，快速测试用 |
-| --use-obs-joint | False | h5 模式使用 observation 关节角 |
-| --spatial | False | 使用空间变化 PSF（默认：全局单一 PSF） |
-| --grid-rows | 4 | PSF 地图网格行数 |
-| --grid-cols | 4 | PSF 地图网格列数 |
-| --overlap | 0.25 | 空间反卷积分块重叠比例 |
+| --h5 | 必填 | H5 文件路径 |
+| --robot | panda | 机器人 (panda / kinova-gen3) |
+| --hand-eye | simple | 手眼标定 (kinova-gen3 / droid-left 等) |
+| --K | 0.01 | Wiener 参数 (越小去模糊越强) |
+| --method | wiener | 反卷积方法 (wiener / tv / rl) |
+| --tv-lam | 0.002 | TV 正则化强度 |
+| --rl-iters | 30 | RL 迭代次数 |
+| --max-frames | 全部 | 限制帧数 |
+| --psf-sigma | 0.0 | PSF 高斯正则化 (0.3 可减少振铃) |
+| --reverse-psf | off | PSF 方向取反 (验证用) |
 
----
+## 用法
 
-## 输出结构
+### 单帧测试
 
-`
-deblur_output/
-├── blurred/             原始模糊帧
-├── deblurred/           去模糊帧
-├── comparison/          左右对比图（blurred | deblurred）
-├── deblurred_video.mp4  去模糊合成视频
-├── comparison_video.mp4 对比合成视频
-└── psf_report.csv       每帧 PSF 参数
+`ash
+# Wiener
+python process_one_frame.py --frame 77 --K 0.03
+
+# TV-L2 (推荐, Laplacian +187)
+python process_one_frame.py --frame 77 --method tv --tv-lam 0.002
+
+# PSF 正则化减少振铃
+python process_one_frame.py --frame 77 --K 0.03 --psf-sigma 0.3
+
+# 方向验证
+python process_one_frame.py --frame 77 --K 0.03 --reverse-psf
 `
 
----
+### 批量评估
+
+`ash
+python batch_analyze.py --h5 episode_0001.h5 --K 0.03
+python batch_analyze.py --h5 episode_0001.h5 --method tv --tv-lam 0.002
+`
+
+### 流水线
+
+`ash
+python pipeline.py --h5 episode_0001.h5 --robot kinova-gen3 --hand-eye kinova-gen3
+python pipeline.py --h5 trajectory.h5 --hand-eye droid-left
+`
 
 ## 核心算法
 
-### 正向运动学
+### 1. 手眼标定 (Kinova Gen3)
 
-使用 Franka Panda / Kinova Gen3 的 D-H 参数计算关节角 → 末端位姿的 4x4 齐次变换矩阵。通过 RobotConfig 支持切换不同机器人。
+- 安装：沿 EE Z 向上 0.11m → 绕 Y 向前倾斜 20° → 沿光轴向前 0.03m
+- R_he: 相机 Z_cam = [sin20°, 0, -cos20°]
+- 	_he: [0.01026, 0, 0.08181] 米
 
-### 几何雅可比
+### 2. 深度计算 (光轴距离)
 
-关节角速度 → 末端空间速度的线性映射：{ee} = J(q) \dot{q}$
+`python
+# 沿相机光轴到桌面的物理距离，不受 EE roll 翻转影响
+depth = max(abs((table_z - cam_pos[2]) / abs(opt_z)), 0.02)
+`
 
-### 手眼标定
+### 3. PSF (Bresenham + DC补偿)
 
-相机相对于法兰末端的固定变换 HandEyeCalib(R, t)，将末端速度转换到相机坐标系。预置了 DROID 实测标定值和 Kinova Gen3 标定值。
+Bresenham 线算法替代 round()，权重完全均匀。Wiener 后自动 DC 补偿。
 
-### 交互矩阵
+### 4. 性能 (Frame 77)
 
-将相机速度映射到像素速度：
+| 方法 | Laplacian | SSIM | 特点 |
+|------|:---------:|:----:|------|
+| Wiener K=0.03 | **+187** | 0.79 | 快速 |
+| **TV-L2 lam=0.002** | **+310** | 0.43 | **无振铃** |
+| RL 50 iters | ~+200 | ~0.60 | 最锐 |
 
+深度修正前后对比：
 
-\begin{bmatrix} \dot{u} \\ \dot{v} \end{bmatrix} =
-\begin{bmatrix}
--\frac{f_x}{Z} & 0 & \frac{u_c}{Z} & \frac{u_c v_c}{f_x} & -\frac{(1+u_c^2)}{f_x} & v_c f_x \\
-0 & -\frac{f_y}{Z} & \frac{v_c}{Z} & \frac{(1+v_c^2)}{f_y} & -\frac{u_c v_c}{f_y} & -u_c f_y
-\end{bmatrix}
-\cdot v_{cam}
+| depth | Laplacian | 说明 |
+|:-----:|:---------:|------|
+| 0.3m (旧 fallback) | +125 | 常数值，不准 |
+| **0.055m (光轴距离)** | **+187** | **正确物理距离** |
 
+## 评估指标
 
-### 反卷积
+| 指标 | 含义 |
+|------|------|
+| Laplacian Variance | 无参考锐度，越大越清晰 |
+| Tenengrad | 梯度锐度 |
+| PSNR | 与模糊图的像素差异 |
+| SSIM | 结构相似度 |
 
-- **Wiener 滤波**：频域最小均方误差估计，速度快、参数少
-- **Richardson-Lucy**：迭代泊松 MAP 估计，更锐利但可能产生振铃
+## 数据集
 
----
-
-## 支持的机器人
-
-| 名称 | D-H 参数来源 |
-|------|-------------|
-| Franka Panda | [libfranka](https://github.com/frankaemika/libfranka) |
-| Kinova Gen3 | [Kortex API](https://github.com/Kinovarobotics/ros2_kortex) |
-
-## 参考
-
-- [DROID Dataset](https://droid-dataset.github.io/)
-- [libfranka](https://github.com/frankaemika/libfranka)
+| 数据 | 分辨率 | 同步 | 有效帧率 |
+|------|:------:|:----:|:--------:|
+| episode_0001 | 320×240 | ✅ 完美 | **100%** |
+| episode_0002 | 640×480 | ⚠️ 有偏移 | 66% |

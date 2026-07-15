@@ -1,0 +1,10 @@
+Frame: 66
+Method: Wiener
+Params: K0.1
+Depth: 0.064m
+Displacement: du=-43.46 dv=15.63
+PSF: 87x87
+Laplacian: 69.04 -> 40.71 (-28.34)
+Tenengrad: 4.49e+08 -> 3.98e+08 (-5.12e+07)
+PSNR: 18.41 dB
+SSIM: 0.7657

@@ -16,7 +16,7 @@ FINAL_DIR = r"E:\Vital_document\CUHKSZ\课程文件\ECE4512\Final"
 sys.path.insert(0, FINAL_DIR)
 
 from h5_loader import load_episode_h5, EpisodeFrameReader
-from joint_deblur import euler_zyx_to_rotmat, compute_psf_from_pose, wiener_deconvolution
+from joint_deblur import euler_zyx_to_rotmat, compute_psf_from_pose, wiener_deconvolution, tv_deconv
 from evaluate import full_evaluate
 from robot_configs import get_robot, HAND_EYE_CONFIGS
 
@@ -39,7 +39,12 @@ def main():
     robot_name = "kinova-gen3"
     hand_eye_name = "kinova-gen3"
     table_z = 0.0
-
+    psf_sigma = 0.0     # PSF regularization (gaussian), 0=off
+    adaptive_k = False  # adaptive K scaling
+    lam = 0.002         # TV regularization strength
+    method = "wiener"   # deconv method (wiener/tv/rl)
+    reverse_psf = False   # flip PSF 180 deg
+    
     # 解析命令行
     argv = sys.argv[1:]
     for i, a in enumerate(argv):
@@ -55,7 +60,17 @@ def main():
             robot_name = argv[i + 1]
         if a == "--hand-eye" and i + 1 < len(argv):
             hand_eye_name = argv[i + 1]
-
+        if a == "--psf-sigma" and i + 1 < len(argv):
+            psf_sigma = float(argv[i + 1])
+        if a == "--adaptive-k":
+            adaptive_k = True
+        if a == "--method" and i + 1 < len(argv):
+            method = argv[i + 1]
+        if a == "--tv-lam" and i + 1 < len(argv):
+            lam = float(argv[i + 1])
+        if a == "--reverse-psf":
+            reverse_psf = True
+        
     # 1. 加载 h5
     h5_path = os.path.join(FINAL_DIR, "episode_0002.h5")
     print(f"Loading {h5_path}...")
@@ -93,17 +108,11 @@ def main():
     else:
         cam_pos = pose[:3]
         R_cam = R_ee_depth
+    # distance along optical axis to table (user request)
     opt_axis = R_cam @ np.array([0, 0, 1])
     opt_z = opt_axis[2]
-    if abs(opt_z) > 0.01:
-        if opt_z > 0:
-            depth = 0.3
-        else:
-            depth = (table_z - cam_pos[2]) / opt_z
-    else:
-        depth = abs(pose[2] - table_z)
-    depth = max(depth, 0.02)
-    print(f"  depth={depth:.3f}m (camZ={cam_pos[2]:.3f}, opt_z={opt_z:.3f})")
+    depth = max(abs((table_z - cam_pos[2]) / max(abs(opt_z), 0.01)), 0.02)
+    print(f"  depth={depth:.3f}m (camZ={cam_pos[2]:.3f}, opt_z={opt_z:+.3f})")
     psf, (du, dv) = compute_psf_from_pose(
         pose, twist, depth,
         fx=fx, fy=fy,
@@ -111,11 +120,29 @@ def main():
         exposure_time=exposure,
         hand_eye=hand_eye
     )
+    # PSF regularization
+    if psf_sigma > 0:
+        from scipy.ndimage import gaussian_filter
+        psf = gaussian_filter(psf, sigma=psf_sigma)
+        psf /= psf.sum()
+    # Adaptive K scaling
+    K_eff = K
+    if adaptive_k:
+        psz = psf.shape[0]
+        K_eff = K * (1.0 + 0.3 * np.log2(max(psz, 3) / 17.0))
+
+    # Reverse PSF direction if requested
+    if reverse_psf:
+        psf = psf[::-1, ::-1]
+        du, dv = -du, -dv
     print(f"Pixel displacement: du={du:.2f}, dv={dv:.2f}")
     print(f"PSF kernel: {psf.shape[0]}x{psf.shape[1]}")
 
    # 6. 去模糊
-    deblurred = wiener_deconvolution(frame_gray, psf, K=K)
+    if method == "tv":
+        deblurred = tv_deconv(frame_gray, psf, lam=lam)
+    else:
+        deblurred = wiener_deconvolution(frame_gray, psf, K=K_eff)
 
     # 7. 评估原图 vs 处理后图像
     # 7. 完整评估（使用 evaluate.py 的 full_evaluate）
@@ -177,8 +204,8 @@ def main():
     cv2.putText(canvas, f"Wiener Deblurred (K={K})", (w + 10, 20),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
 
-    info = (f"depth={depth}m  exp={exposure}s  du={du:.1f}  dv={dv:.1f}  |  " +
-            f"PSNR={eval_all['PSNR_raw']:.1f}dB  SSIM={eval_all['SSIM_raw']:.3f}  |  "
+    info = (f"depth={depth}m  sig={psf_sigma}  exp={exposure}s  du={du:.1f}  dv={dv:.1f}  |  " +
+            f"PSNR={eval_all['PSNR_raw']:.1f}dB  SSIM={eval_all['SSIM_raw']:.3f}  TV delta={eval_all['tv_change']:.2e}  EdgeR={eval_all['edge_ratio']:.2f}  |  "
             f"orig mean={s_b['mean']:.0f}  deb mean={s_a['mean']:.0f}")
     cv2.putText(canvas, info, (10, h + label_h - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.4, (80, 80, 80), 1)

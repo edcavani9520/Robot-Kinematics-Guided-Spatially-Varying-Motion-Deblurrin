@@ -31,23 +31,29 @@ def euler_zyx_to_rotmat(rpy_deg):
     ])
 
 # === ADDED: PSF from tool_pose + tool_twist (bypasses FK+Jacobian) ===
-def compute_psf_from_pose(tool_pose, tool_twist, depth, fx=500, fy=500,
-                           cx=None, cy=None, exposure_time=0.03, hand_eye=None):
-    """Compute PSF from h5 tool_pose + tool_twist directly."""
+def compute_psf_from_pose(tool_pose=None, tool_twist=None, depth=0.5, fx=500, fy=500,
+                           cx=None, cy=None, exposure_time=0.03, hand_eye=None,
+                           v_cam_6d=None):
+    """Compute PSF from h5 tool_pose + tool_twist or direct v_cam_6d."""
     if cx is None or cy is None:
         raise ValueError("cx, cy required")
-    R_ee = euler_zyx_to_rotmat(tool_pose[3:])
-    v_ee_base = tool_twist[:3]
-    w_ee_base = tool_twist[3:]
-    v_ee_ee = R_ee.T @ v_ee_base
-    w_ee_ee = R_ee.T @ w_ee_base
-    if hand_eye is not None:
-        R_he, t_he = hand_eye.R, hand_eye.t
-        w_cam = R_he.T @ w_ee_ee
-        v_cam = R_he.T @ v_ee_ee + np.cross(w_cam, R_he.T @ t_he)
+    if v_cam_6d is not None:
+        pass  # use provided camera velocity (from get_camera_velocity)
+    elif tool_twist is not None and tool_pose is not None:
+        R_ee = euler_zyx_to_rotmat(tool_pose[3:])
+        v_ee_base = tool_twist[:3]
+        w_ee_base = tool_twist[3:]
+        v_ee_ee = R_ee.T @ v_ee_base
+        w_ee_ee = R_ee.T @ w_ee_base
+        if hand_eye is not None:
+            R_he, t_he = hand_eye.R, hand_eye.t
+            w_cam = R_he.T @ w_ee_ee
+            v_cam = R_he.T @ v_ee_ee + np.cross(w_cam, R_he.T @ t_he)
+        else:
+            v_cam, w_cam = v_ee_ee, w_ee_ee
+        v_cam_6d = np.concatenate([v_cam, w_cam])
     else:
-        v_cam, w_cam = v_ee_ee, w_ee_ee
-    v_cam_6d = np.concatenate([v_cam, w_cam])
+        raise ValueError("Either v_cam_6d or (tool_pose + tool_twist) must be provided")
     L = compute_interaction_matrix(cx, cy, depth, fx, fy, cx, cy)
     du_dt, dv_dt = L @ v_cam_6d
     du = du_dt * exposure_time
@@ -353,7 +359,10 @@ def pad_psf(psf, shape):
     """
     h, w = shape[:2]
     kh, kw = psf.shape
-    cy, cx = np.unravel_index(psf.argmax(), psf.shape)
+    # WARNING: argmax returns the first max-value pixel, which for
+    # uniform line kernels (Bresenham) is the LINE ENDPOINT, not center.
+    # Using geometric center instead to avoid spatial shift in FFT deconv.
+    cy, cx = kh // 2, kw // 2
 
     pad = np.zeros((h, w), dtype=np.float64)
     pad[:kh, :kw] = psf
@@ -362,28 +371,7 @@ def pad_psf(psf, shape):
     return pad
 
 
-def mirror_pad(img, pad_rows, pad_cols):
-    """
-    镜像拓延：对图像边界进行镜像反射填充，减少 FFT 边界伪影。
-
-    FFT 假设图像是周期延拓的，实际图像左右/上下边界不连续，
-    镜像拓延让边界平滑过渡，从而抑制反卷积时的振铃伪影。
-
-    Parameters:
-        img: 输入图像 (H, W) 或 (H, W, C)
-        pad_rows: 上下各填充的行数（PSF 高度的一半）
-        pad_cols: 左右各填充的列数（PSF 宽度的一半）
-    Returns:
-        填充后的图像
-    """
-    if img.ndim == 2:
-        return np.pad(img, ((pad_rows, pad_rows), (pad_cols, pad_cols)), mode='reflect')
-    else:
-        return np.pad(img, ((pad_rows, pad_rows), (pad_cols, pad_cols), (0, 0)), mode='reflect')
-
-
 def spatial_wiener_deconvolution(blurred, psf_map, grid_rows, grid_cols,
-                                    use_mirror_pad=False,
                                     K=0.01, overlap=0.25):
     """Spatially-varying Wiener deconvolution with overlapping patches and cosine blending."""
     H, W = blurred.shape[:2]
@@ -401,7 +389,7 @@ def spatial_wiener_deconvolution(blurred, psf_map, grid_rows, grid_cols,
             x1 = min(W, int((c + 1) * cell_w) + overlap_w)
             patch = blurred[y0:y1, x0:x1]
             psf = psf_map[r][c]
-            deblurred_patch = wiener_deconvolution(patch, psf, K=K, use_mirror_pad=use_mirror_pad)
+            deblurred_patch = wiener_deconvolution(patch, psf, K=K)
             wy = 0.5 - 0.5 * np.cos(np.pi * np.arange(y1 - y0) / (y1 - y0))
             wx = 0.5 - 0.5 * np.cos(np.pi * np.arange(x1 - x0) / (x1 - x0))
             w = np.outer(wy, wx)
@@ -412,7 +400,6 @@ def spatial_wiener_deconvolution(blurred, psf_map, grid_rows, grid_cols,
 
 
 def spatial_richardson_lucy(blurred, psf_map, grid_rows, grid_cols,
-                            use_mirror_pad=False,
                             iterations=30, overlap=0.25):
     """Spatially-varying RL deconvolution with overlapping patches and cosine blending."""
     H, W = blurred.shape[:2]
@@ -430,7 +417,7 @@ def spatial_richardson_lucy(blurred, psf_map, grid_rows, grid_cols,
             x1 = min(W, int((c + 1) * cell_w) + overlap_w)
             patch = blurred[y0:y1, x0:x1]
             psf = psf_map[r][c]
-            deblurred_patch = richardson_lucy(patch, psf, iterations=iterations, use_mirror_pad=use_mirror_pad)
+            deblurred_patch = richardson_lucy(patch, psf, iterations=iterations)
             wy = 0.5 - 0.5 * np.cos(np.pi * np.arange(y1 - y0) / (y1 - y0))
             wx = 0.5 - 0.5 * np.cos(np.pi * np.arange(x1 - x0) / (x1 - x0))
             w = np.outer(wy, wx)
@@ -444,7 +431,7 @@ def spatial_richardson_lucy(blurred, psf_map, grid_rows, grid_cols,
 # 第四部分：非盲反卷积（去模糊）
 # ============================================================
 
-def wiener_deconvolution(blurred, psf, K=0.01, use_mirror_pad=False):
+def wiener_deconvolution(blurred, psf, K=0.01):
     """
     维纳滤波去卷积。
     
@@ -459,68 +446,115 @@ def wiener_deconvolution(blurred, psf, K=0.01, use_mirror_pad=False):
         psf: PSF 核
         K: 噪声-信号比，默认 0.01
             (K 小->去模糊强，K 大->去噪好)
-        use_mirror_pad: 是否开启镜像拓延。默认 False，保留边界信息。
     """
     h, w = blurred.shape[:2]
     H = np.fft.fft2(pad_psf(psf, (h, w)))
     B = np.fft.fft2(blurred.astype(np.float64))
     result = np.fft.ifft2(B * np.conj(H) / (np.abs(H)**2 + K)).real
+    # DC gain compensation: restore average brightness
+    result *= (1.0 + K)
     return np.clip(result, 0, 255).astype(np.uint8)
 
-
-def richardson_lucy(blurred, psf, iterations=30, use_mirror_pad=False):
-    """
-    Richardson-Lucy 迭代反卷积。
-    
-    基于泊松噪声模型的最大似然估计：
-    x_{k+1} = x_k * (conj(H) * (b / (H * x_k)))
-    
-    步数越多细节越锐利，但振铃越严重。
-    
-    参数:
-        blurred: 模糊图像 (H, W)
-        psf: PSF 核
-        iterations: 迭代次数
-        use_mirror_pad: 是否开启镜像拓延。默认 False，保留边界信息。
+def richardson_lucy(blurred, psf, iterations=30):
+    """Richardson-Lucy iterative deconvolution.
+    x_{k+1} = x_k * (H^T * (b / (H * x_k)))
     """
     b = blurred.astype(np.float64)
     h, w = b.shape[:2]
-    kh, kw = psf.shape
-    pad_y = kh // 2
-    pad_x = kw // 2
-
-    if use_mirror_pad and pad_y > 0 and pad_x > 0:
-        padded = mirror_pad(blurred, pad_y, pad_x)
-        ph, pw = padded.shape[:2]
-        H = np.fft.fft2(pad_psf(psf, (ph, pw)))
-        Hc = np.conj(H)
-        b_pad = padded.astype(np.float64)
-
-        bound = 1e10
-        x = b_pad.copy()
-
-        for _ in range(iterations):
-            Hx = np.fft.ifft2(np.fft.fft2(x) * H).real
-            Hx = np.maximum(Hx, 1e-10)
-            ratio = np.clip(b_pad / Hx, 0, bound)
-            upd = np.clip(np.fft.ifft2(np.fft.fft2(ratio) * Hc).real, 0, bound)
-            x = np.clip(x * upd, 0, None)
-
-        result = x[pad_y:pad_y + h, pad_x:pad_x + w]
-    else:
-        H = np.fft.fft2(pad_psf(psf, (h, w)))
-        Hc = np.conj(H)
-
-        bound = 1e10
-        x = b.copy()
-
-        for _ in range(iterations):
-            Hx = np.fft.ifft2(np.fft.fft2(x) * H).real
-            Hx = np.maximum(Hx, 1e-10)
-            ratio = np.clip(b / Hx, 0, bound)
-            upd = np.clip(np.fft.ifft2(np.fft.fft2(ratio) * Hc).real, 0, bound)
-            x = np.clip(x * upd, 0, None)
-
-        result = x
-
+    H = np.fft.fft2(pad_psf(psf, (h, w)))
+    Hc = np.conj(H)
+    bound = 1e10
+    x = b.copy()
+    for _ in range(iterations):
+        Hx = np.fft.ifft2(np.fft.fft2(x) * H).real
+        Hx = np.maximum(Hx, 1e-10)
+        ratio = np.clip(b / Hx, 0, bound)
+        upd = np.clip(np.fft.ifft2(np.fft.fft2(ratio) * Hc).real, 0, bound)
+        x = np.clip(x * upd, 0, None)
+    result = x
     return np.clip(result, 0, 255).astype(np.uint8)
+
+
+def tv_deconv(blurred, psf, lam=0.002, rho=None, max_iter=30, tol=1e-4):
+    """TV-L2 deconvolution via ADMM.
+    
+    Solves: min_x  ||h*x - b||^2 + lam * ||grad(x)||_1
+    
+    ADMM splits z = grad(x):
+      x: FFT-based least squares
+      z: soft thresholding (shrinkage)
+      u: dual variable update
+    
+    Parameters:
+        blurred: blurry image (H, W)
+        psf: PSF kernel
+        lam: TV regularization strength (default 0.04)
+        rho: ADMM penalty (default lam * 10)
+        max_iter: max iterations (default 30)
+        tol: convergence tolerance (default 1e-4)
+    Returns:
+        deblurred image (H, W), uint8
+    """
+    if rho is None:
+        rho = lam * 10
+    
+    b = blurred.astype(np.float64)
+    h, w = b.shape
+    
+    # PSF in frequency domain
+    H_fft = np.fft.fft2(pad_psf(psf, (h, w)))
+    HH = np.conj(H_fft) * H_fft
+    
+    # Gradient operators in frequency domain
+    # Dx = 1 - exp(-2*pi*j*u/W),  Dy = 1 - exp(-2*pi*j*v/H)
+    u = np.fft.fftfreq(w).reshape(1, -1)
+    v = np.fft.fftfreq(h).reshape(-1, 1)
+    Dx = 1 - np.exp(-2j * np.pi * u)
+    Dy = 1 - np.exp(-2j * np.pi * v)
+    DD = np.abs(Dx)**2 + np.abs(Dy)**2
+    
+    denom = HH + rho * DD
+    denom = np.maximum(denom, 1e-10)
+    
+    # Load B
+    B_fft = np.fft.fft2(b)
+    
+    # ADMM variables
+    x = b.copy()
+    zx = np.zeros_like(x)
+    zy = np.zeros_like(x)
+    ux = np.zeros_like(x)
+    uy = np.zeros_like(x)
+    t = lam / rho
+    
+    for it in range(max_iter):
+        x_old = x
+        
+        # x-update: FFT
+        rhs = np.conj(H_fft) * B_fft + rho * (
+            np.conj(Dx) * np.fft.fft2(zx - ux) +
+            np.conj(Dy) * np.fft.fft2(zy - uy))
+        x = np.fft.ifft2(rhs / denom).real
+        
+        # Gradients of new x (forward diff, periodic BC)
+        gx = np.roll(x, -1, axis=1) - x
+        gy = np.roll(x, -1, axis=0) - x
+        
+        # z-update: soft thresholding
+        vx = gx + ux
+        vy = gy + uy
+        vn = np.sqrt(vx**2 + vy**2 + 1e-10)
+        scale = np.maximum(1 - t / vn, 0)
+        zx = scale * vx
+        zy = scale * vy
+        
+        # Dual update
+        ux += (gx - zx)
+        uy += (gy - zy)
+        
+        # Check convergence
+        diff = np.linalg.norm(x - x_old) / max(np.linalg.norm(x), 1)
+        if diff < tol:
+            break
+    
+    return np.clip(x, 0, 255).astype(np.uint8)
