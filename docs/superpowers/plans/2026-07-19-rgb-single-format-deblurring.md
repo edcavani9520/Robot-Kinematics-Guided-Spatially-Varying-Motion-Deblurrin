@@ -18,7 +18,7 @@
 - `pipeline.py`: unified current-format RGB full pipeline and color output.
 - `batch_analyze.py`: current-format RGB batch evaluation.
 - `process_one_frame.py`: current-format RGB single-frame evaluation and output.
-- `kinova_batch.py`: remove duplicate loader assumptions and process RGB consistently.
+- `kinova_batch.py`: delete the duplicate batch entry point.
 - `README.md`: document the only accepted schema and RGB behavior.
 - `tests/test_h5_loader.py`: loader schema, RGB order, and velocity tests.
 - `tests/test_rgb_deblur.py`: global and spatial RGB deconvolution tests.
@@ -150,7 +150,7 @@ Expected: all evaluation tests pass.
 - Modify: `pipeline.py`
 - Modify: `batch_analyze.py`
 - Modify: `process_one_frame.py`
-- Modify: `kinova_batch.py`
+- Delete: `kinova_batch.py`
 
 - [ ] **Step 1: Write failing output conversion tests**
 
@@ -170,9 +170,9 @@ Import only `load_episode_h5` and `EpisodeFrameReader`. Remove format detection,
 
 Replace gray variables and conversions with RGB frames. Use the same joint-kinematics PSF path and current loader in all scripts. Make comparison canvases RGB internally when saved with Pillow, or BGR internally when saved with OpenCV, with one explicit conversion at the boundary.
 
-- [ ] **Step 5: Remove duplicate Kinova format behavior**
+- [ ] **Step 5: Remove the duplicate Kinova batch entry point**
 
-Make `kinova_batch.py` use the same current-format loader and RGB reader as the other scripts. Remove nonexistent zero tool pose and action-as-twist assumptions.
+Delete `kinova_batch.py`; `batch_analyze.py` is the only batch analyzer and uses the current-format RGB loader.
 
 - [ ] **Step 6: Run output and full unit tests**
 
@@ -206,7 +206,7 @@ Expected: every result is `(240,320,3)` `uint8`; saved files decode as color; no
 Run:
 
 ```powershell
-python -m compileall -q h5_loader.py joint_deblur.py evaluate.py pipeline.py batch_analyze.py process_one_frame.py kinova_batch.py
+python -m compileall -q h5_loader.py joint_deblur.py evaluate.py pipeline.py batch_analyze.py process_one_frame.py
 python -m pytest tests -v
 git diff --check
 ```

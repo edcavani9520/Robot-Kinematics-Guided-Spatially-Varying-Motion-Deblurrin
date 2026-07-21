@@ -17,6 +17,40 @@ joint_deblur.py — 用关节角数据去模糊
 import numpy as np
 import math
 
+MAX_PSF_KERNEL_SIZE = 4095
+
+
+def _require_finite_positive(name, value):
+    if isinstance(value, bool):
+        raise ValueError(f"{name} must be finite and greater than zero")
+    try:
+        valid = np.isfinite(value) and value > 0
+    except (TypeError, ValueError):
+        valid = False
+    if not valid:
+        raise ValueError(f"{name} must be finite and greater than zero")
+    return float(value)
+
+
+def _require_finite_vector(name, value, length):
+    array = np.asarray(value, dtype=np.float64)
+    if array.shape != (length,) or not np.isfinite(array).all():
+        raise ValueError(f"{name} must be a finite vector with shape ({length},)")
+    return array
+
+
+def _validate_psf_array(psf):
+    array = np.asarray(psf, dtype=np.float64)
+    if (
+        array.ndim != 2
+        or array.size == 0
+        or not np.isfinite(array).all()
+        or np.any(array < 0)
+        or array.sum() <= 0
+    ):
+        raise ValueError("psf must be a finite, non-negative, non-empty 2-D kernel")
+    return array / array.sum()
+
 # === ADDED: Euler ZYX deg -> rotation matrix ===
 def euler_zyx_to_rotmat(rpy_deg):
     """ZYX Euler angles (deg) -> 3x3 rotation matrix."""
@@ -31,15 +65,23 @@ def euler_zyx_to_rotmat(rpy_deg):
     ])
 
 # === ADDED: PSF from tool_pose + tool_twist (bypasses FK+Jacobian) ===
-def compute_psf_from_pose(tool_pose=None, tool_twist=None, depth=0.5, fx=500, fy=500,
-                           cx=None, cy=None, exposure_time=0.03, hand_eye=None,
+def compute_psf_from_pose(tool_pose=None, tool_twist=None, depth=0.5, fx=None, fy=None,
+                           cx=None, cy=None, exposure_time=0.01, hand_eye=None,
                            v_cam_6d=None):
     """Compute PSF from h5 tool_pose + tool_twist or direct v_cam_6d."""
+    _require_finite_positive("depth", depth)
+    _require_finite_positive("fx", fx)
+    _require_finite_positive("fy", fy)
+    _require_finite_positive("exposure_time", exposure_time)
     if cx is None or cy is None:
         raise ValueError("cx, cy required")
+    if not np.isfinite([cx, cy]).all():
+        raise ValueError("cx and cy must be finite")
     if v_cam_6d is not None:
-        pass  # use provided camera velocity (from get_camera_velocity)
+        v_cam_6d = _require_finite_vector("v_cam_6d", v_cam_6d, 6)
     elif tool_twist is not None and tool_pose is not None:
+        tool_pose = _require_finite_vector("tool_pose", tool_pose, 6)
+        tool_twist = _require_finite_vector("tool_twist", tool_twist, 6)
         R_ee = euler_zyx_to_rotmat(tool_pose[3:])
         v_ee_base = tool_twist[:3]
         w_ee_base = tool_twist[3:]
@@ -149,6 +191,8 @@ def get_camera_velocity(q, q_dot, hand_eye=None, robot=None):
     返回:
         v_cam (6,): [v_x, v_y, v_z, ω_x, ω_y, ω_z] 相机速度
     """
+    q = _require_finite_vector("q", q, 7)
+    q_dot = _require_finite_vector("q_dot", q_dot, 7)
     if hand_eye is None:
         hand_eye = PANDA_HAND_EYE_SIMPLE
     if robot is None:
@@ -187,6 +231,11 @@ def compute_interaction_matrix(u, v, Z, fx, fy, cx, cy):
     
     其中 u_c = (u-cx)/fx, v_c = (v-cy)/fy 是归一化像素坐标。
     """
+    _require_finite_positive("depth", Z)
+    _require_finite_positive("fx", fx)
+    _require_finite_positive("fy", fy)
+    if not np.isfinite([u, v, cx, cy]).all():
+        raise ValueError("u, v, cx, and cy must be finite")
     xn = (u - cx) / fx
     yn = (v - cy) / fy
     
@@ -201,8 +250,8 @@ def compute_interaction_matrix(u, v, Z, fx, fy, cx, cy):
 # 第三部分：从关节角到 PSF
 # ============================================================
 
-def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
-                exposure_time=0.03, hand_eye=None, robot=None,
+def compute_psf(q, q_dot, depth, fx=None, fy=None, cx=None, cy=None,
+                exposure_time=0.01, hand_eye=None, robot=None,
                 tool_pose=None, tool_twist=None):
     """
     核心函数：从机器人关节角推算运动模糊 PSF。
@@ -249,8 +298,8 @@ def compute_psf(q, q_dot, depth, fx=500, fy=500, cx=None, cy=None,
     return create_motion_psf(du, dv), (du, dv)
 
 
-def compute_psf_map(q, q_dot, depth, H, W, fx=500, fy=500,
-                    exposure_time=0.03, grid_rows=4, grid_cols=4,
+def compute_psf_map(q, q_dot, depth, H, W, fx=None, fy=None,
+                    exposure_time=0.01, grid_rows=4, grid_cols=4,
                     hand_eye=None, robot=None):
     """
     计算空间变化 PSF 地图。
@@ -306,42 +355,51 @@ def compute_psf_map(q, q_dot, depth, H, W, fx=500, fy=500,
 
 def create_motion_psf(du, dv):
     """
-    Create motion blur PSF using Bresenham's line algorithm.
-    Visits each pixel along the motion path exactly once,
-    producing a uniform-weight kernel with no gaps.
+    Create a centered subpixel motion PSF using bilinear trajectory splatting.
+
+    The exposure path is sampled at at most quarter-pixel spacing. Each sample
+    distributes its energy over four neighboring pixels, so displacements below
+    one pixel remain represented instead of being rounded to a delta kernel.
     Parameters:
         du, dv: pixel displacement in x/y during exposure
     Returns:
         (ksize, ksize) normalized PSF kernel
     """
-    ksize = max(2 * int(abs(du)), 2 * int(abs(dv))) + 1
-    ksize = max(ksize, 3)
-    ksize = ksize if ksize % 2 == 1 else ksize + 1
+    if not np.isfinite([du, dv]).all():
+        raise ValueError("du and dv must be finite")
+    du, dv = float(du), float(dv)
+    length = math.hypot(du, dv)
+    radius = max(1, int(math.ceil(max(abs(du), abs(dv)) / 2.0)) + 1)
+    ksize = 2 * radius + 1
+    if ksize > MAX_PSF_KERNEL_SIZE:
+        raise ValueError(
+            f"motion PSF kernel size {ksize} exceeds safety limit "
+            f"{MAX_PSF_KERNEL_SIZE}"
+        )
     psf = np.zeros((ksize, ksize), dtype=np.float64)
-    c = ksize // 2
-    x0, y0 = c, c
-    x1 = c + int(round(dv))
-    y1 = c + int(round(du))
-    dx = abs(x1 - x0)
-    dy = abs(y1 - y0)
-    sx = 1 if x0 < x1 else -1
-    sy = 1 if y0 < y1 else -1
-    err = dx - dy
-    x, y = x0, y0
-    while True:
-        if 0 <= x < ksize and 0 <= y < ksize:
-            psf[x, y] += 1.0
-        if x == x1 and y == y1:
-            break
-        e2 = 2 * err
-        if e2 > -dy:
-            err -= dy
-            x += sx
-        if e2 < dx:
-            err += dx
-            y += sy
-    s = psf.sum()
-    return psf / s if s > 0 else psf
+    center = float(radius)
+    if length < 1e-12:
+        psf[radius, radius] = 1.0
+        return psf
+
+    sample_count = max(2, int(math.ceil(length / 0.25)) + 1)
+    for t in np.linspace(-0.5, 0.5, sample_count):
+        row = center + t * dv
+        col = center + t * du
+        row0, col0 = math.floor(row), math.floor(col)
+        row_fraction = row - row0
+        col_fraction = col - col0
+        for rr, row_weight in (
+            (row0, 1.0 - row_fraction),
+            (row0 + 1, row_fraction),
+        ):
+            for cc, col_weight in (
+                (col0, 1.0 - col_fraction),
+                (col0 + 1, col_fraction),
+            ):
+                if 0 <= rr < ksize and 0 <= cc < ksize:
+                    psf[rr, cc] += row_weight * col_weight
+    return psf / psf.sum()
 
 
 def pad_psf(psf, shape):
@@ -359,9 +417,9 @@ def pad_psf(psf, shape):
     """
     h, w = shape[:2]
     kh, kw = psf.shape
-    # WARNING: argmax returns the first max-value pixel, which for
-    # uniform line kernels (Bresenham) is the LINE ENDPOINT, not center.
-    # Using geometric center instead to avoid spatial shift in FFT deconv.
+    if kh > h or kw > w:
+        raise ValueError(f"PSF shape {(kh, kw)} exceeds image shape {(h, w)}")
+    # The trajectory PSF is centered geometrically; use that center for FFT.
     cy, cx = kh // 2, kw // 2
 
     pad = np.zeros((h, w), dtype=np.float64)
@@ -393,8 +451,9 @@ def spatial_wiener_deconvolution(blurred, psf_map, grid_rows, grid_cols,
             wy = 0.5 - 0.5 * np.cos(np.pi * np.arange(y1 - y0) / (y1 - y0))
             wx = 0.5 - 0.5 * np.cos(np.pi * np.arange(x1 - x0) / (x1 - x0))
             w = np.outer(wy, wx)
-            result[y0:y1, x0:x1] += deblurred_patch.astype(np.float64) * w
-            weight[y0:y1, x0:x1] += w
+            blend = w[..., None] if blurred.ndim == 3 else w
+            result[y0:y1, x0:x1] += deblurred_patch.astype(np.float64) * blend
+            weight[y0:y1, x0:x1] += blend
     weight = np.maximum(weight, 1e-10)
     return np.clip(result / weight, 0, 255).astype(np.uint8)
 
@@ -421,8 +480,9 @@ def spatial_richardson_lucy(blurred, psf_map, grid_rows, grid_cols,
             wy = 0.5 - 0.5 * np.cos(np.pi * np.arange(y1 - y0) / (y1 - y0))
             wx = 0.5 - 0.5 * np.cos(np.pi * np.arange(x1 - x0) / (x1 - x0))
             w = np.outer(wy, wx)
-            result[y0:y1, x0:x1] += deblurred_patch.astype(np.float64) * w
-            weight[y0:y1, x0:x1] += w
+            blend = w[..., None] if blurred.ndim == 3 else w
+            result[y0:y1, x0:x1] += deblurred_patch.astype(np.float64) * blend
+            weight[y0:y1, x0:x1] += blend
     weight = np.maximum(weight, 1e-10)
     return np.clip(result / weight, 0, 255).astype(np.uint8)
 
@@ -431,7 +491,22 @@ def spatial_richardson_lucy(blurred, psf_map, grid_rows, grid_cols,
 # 第四部分：非盲反卷积（去模糊）
 # ============================================================
 
-def wiener_deconvolution(blurred, psf, K=0.01):
+def _apply_to_image_channels(image, operation):
+    """Apply a two-dimensional operation to grayscale or every RGB channel."""
+    image = np.asarray(image)
+    if image.ndim == 2:
+        return operation(image)
+    if image.ndim == 3 and image.shape[2] == 3:
+        return np.stack(
+            [operation(image[..., channel]) for channel in range(3)], axis=2
+        )
+    raise ValueError(
+        "deconvolution input must be a 2-D image or an RGB image with shape "
+        f"(H, W, 3); got {image.shape}"
+    )
+
+
+def _wiener_deconvolution_2d(blurred, psf, K=0.01):
     """
     维纳滤波去卷积。
     
@@ -447,6 +522,8 @@ def wiener_deconvolution(blurred, psf, K=0.01):
         K: 噪声-信号比，默认 0.01
             (K 小->去模糊强，K 大->去噪好)
     """
+    _require_finite_positive("K", K)
+    psf = _validate_psf_array(psf)
     h, w = blurred.shape[:2]
     H = np.fft.fft2(pad_psf(psf, (h, w)))
     B = np.fft.fft2(blurred.astype(np.float64))
@@ -455,10 +532,21 @@ def wiener_deconvolution(blurred, psf, K=0.01):
     result *= (1.0 + K)
     return np.clip(result, 0, 255).astype(np.uint8)
 
-def richardson_lucy(blurred, psf, iterations=30):
+
+def wiener_deconvolution(blurred, psf, K=0.01):
+    """Wiener deconvolution for a 2-D image or independent RGB channels."""
+    return _apply_to_image_channels(
+        blurred, lambda channel: _wiener_deconvolution_2d(channel, psf, K=K)
+    )
+
+
+def _richardson_lucy_2d(blurred, psf, iterations=30):
     """Richardson-Lucy iterative deconvolution.
     x_{k+1} = x_k * (H^T * (b / (H * x_k)))
     """
+    if isinstance(iterations, bool) or not isinstance(iterations, (int, np.integer)) or iterations < 1:
+        raise ValueError("iterations must be an integer at least 1")
+    psf = _validate_psf_array(psf)
     b = blurred.astype(np.float64)
     h, w = b.shape[:2]
     H = np.fft.fft2(pad_psf(psf, (h, w)))
@@ -475,7 +563,17 @@ def richardson_lucy(blurred, psf, iterations=30):
     return np.clip(result, 0, 255).astype(np.uint8)
 
 
-def tv_deconv(blurred, psf, lam=0.002, rho=None, max_iter=30, tol=1e-4):
+def richardson_lucy(blurred, psf, iterations=30):
+    """Richardson-Lucy deconvolution for 2-D or independent RGB channels."""
+    return _apply_to_image_channels(
+        blurred,
+        lambda channel: _richardson_lucy_2d(
+            channel, psf, iterations=iterations
+        ),
+    )
+
+
+def _tv_deconv_2d(blurred, psf, lam=0.002, rho=None, max_iter=30, tol=1e-4):
     """TV-L2 deconvolution via ADMM.
     
     Solves: min_x  ||h*x - b||^2 + lam * ||grad(x)||_1
@@ -495,8 +593,14 @@ def tv_deconv(blurred, psf, lam=0.002, rho=None, max_iter=30, tol=1e-4):
     Returns:
         deblurred image (H, W), uint8
     """
+    _require_finite_positive("lam", lam)
     if rho is None:
         rho = lam * 10
+    _require_finite_positive("rho", rho)
+    if isinstance(max_iter, bool) or not isinstance(max_iter, (int, np.integer)) or max_iter < 1:
+        raise ValueError("max_iter must be an integer at least 1")
+    _require_finite_positive("tol", tol)
+    psf = _validate_psf_array(psf)
     
     b = blurred.astype(np.float64)
     h, w = b.shape
@@ -558,3 +662,18 @@ def tv_deconv(blurred, psf, lam=0.002, rho=None, max_iter=30, tol=1e-4):
             break
     
     return np.clip(x, 0, 255).astype(np.uint8)
+
+
+def tv_deconv(blurred, psf, lam=0.002, rho=None, max_iter=30, tol=1e-4):
+    """TV-L2 deconvolution for a 2-D image or independent RGB channels."""
+    return _apply_to_image_channels(
+        blurred,
+        lambda channel: _tv_deconv_2d(
+            channel,
+            psf,
+            lam=lam,
+            rho=rho,
+            max_iter=max_iter,
+            tol=tol,
+        ),
+    )

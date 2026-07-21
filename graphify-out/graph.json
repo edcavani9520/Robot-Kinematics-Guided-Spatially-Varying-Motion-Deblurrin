@@ -1,0 +1,4340 @@
+{
+  "nodes": [
+    {
+      "id": "batch_analyze",
+      "label": "batch_analyze.py",
+      "file_type": "code",
+      "source_file": "batch_analyze.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "batch_analyze_judge_lap",
+      "label": "_judge_lap()",
+      "file_type": "code",
+      "source_file": "batch_analyze.py",
+      "source_location": "L15",
+      "_origin": "ast"
+    },
+    {
+      "id": "batch_analyze_judge_ten",
+      "label": "_judge_ten()",
+      "file_type": "code",
+      "source_file": "batch_analyze.py",
+      "source_location": "L16",
+      "_origin": "ast"
+    },
+    {
+      "id": "batch_analyze_judge_tv_ratio",
+      "label": "_judge_tv_ratio()",
+      "file_type": "code",
+      "source_file": "batch_analyze.py",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "batch_analyze_judge_edge",
+      "label": "_judge_edge()",
+      "file_type": "code",
+      "source_file": "batch_analyze.py",
+      "source_location": "L20",
+      "_origin": "ast"
+    },
+    {
+      "id": "batch_analyze_judge_psnr",
+      "label": "_judge_psnr()",
+      "file_type": "code",
+      "source_file": "batch_analyze.py",
+      "source_location": "L21",
+      "_origin": "ast"
+    },
+    {
+      "id": "batch_analyze_judge_ssim",
+      "label": "_judge_ssim()",
+      "file_type": "code",
+      "source_file": "batch_analyze.py",
+      "source_location": "L22",
+      "_origin": "ast"
+    },
+    {
+      "id": "batch_analyze_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "batch_analyze.py",
+      "source_location": "L25",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate",
+      "label": "evaluate.py",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_psnr",
+      "label": "psnr()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_ssim",
+      "label": "ssim()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L28",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_laplacian_sharpness",
+      "label": "laplacian_sharpness()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L55",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_tenengrad",
+      "label": "tenengrad()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L64",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_match_histogram",
+      "label": "match_histogram()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L79",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_evaluate",
+      "label": "evaluate()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L108",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_compare_sharpness",
+      "label": "compare_sharpness()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L153",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_total_variation",
+      "label": "total_variation()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L170",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_edge_strength_ratio",
+      "label": "edge_strength_ratio()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L179",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_laplacian_variance",
+      "label": "laplacian_variance()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L198",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_image_stats",
+      "label": "image_stats()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L204",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_full_evaluate",
+      "label": "full_evaluate()",
+      "file_type": "code",
+      "source_file": "evaluate.py",
+      "source_location": "L220",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_1",
+      "label": "evaluate.py \u2014 \u53bb\u6a21\u7cca\u6548\u679c\u8bc4\u4f30 ============================== \u5305\u542b PSNR\u3001SSIM\u3001\u76f4\u65b9\u56fe\u5339\u914d\u3001Teneng",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_14",
+      "label": "PSNR = 20 * log10(255 / sqrt(MSE))      \u8861\u91cf\u4e24\u5e45\u56fe\u50cf\u7684\u50cf\u7d20\u7ea7\u5dee\u5f02\u3002     >40dB \u6781\u597d, 30-40dB \u597d",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L14",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_29",
+      "label": "SSIM(x,y) = (2*ux*uy+C1)(2*sig_xy+C2) / ((ux^2+uy^2+C1)(sig_x^2+sig_y^2+C2))",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L29",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_65",
+      "label": "Tenengrad \u6e05\u6670\u5ea6\u6307\u6807\uff1a\u4f7f\u7528 Sobel \u7b97\u5b50\u8ba1\u7b97\u68af\u5ea6\u5e45\u503c\u5e73\u65b9\u548c\u3002      \u503c\u8d8a\u5927\u8868\u793a\u56fe\u50cf\u8d8a\u6e05\u6670\uff0c\u5e38\u7528\u4e8e\u65e0\u53c2\u8003\u56fe\u50cf\u8d28\u91cf\u8bc4\u4f30\u3002",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L65",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_80",
+      "label": "\u76f4\u65b9\u56fe\u5339\u914d\uff1a\u5c06 source \u7684\u7070\u5ea6\u5206\u5e03\u6620\u5c04\u5230 reference \u7684\u5206\u5e03\u3002      \u7528\u4e8e\u53bb\u6a21\u7cca\u8bc4\u4f30\uff1a\u53bb\u6a21\u7cca\u53ef\u80fd\u6539\u53d8\u56fe\u50cf\u7684\u6574\u4f53\u4eae\u5ea6/\u5bf9\u6bd4\u5ea6\uff0c     \u5728",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L80",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_109",
+      "label": "\u5b8c\u6574\u8bc4\u4f30\uff1aPSNR + SSIM + \u76f4\u65b9\u56fe\u5339\u914d\u540e PSNR/SSIM + Tenengrad + Laplacian \u9510\u5ea6\u3002      \u8fd4\u56de\u5b57\u5178\u5305\u542b\u6307\u6807\uff1a",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L109",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_154",
+      "label": "\u901a\u8fc7 evaluate \u8fdb\u884c\u9510\u5ea6\u5bf9\u6bd4\uff08\u4f7f\u7528 Tenengrad \u6307\u6807\uff09\u3002",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L154",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_171",
+      "label": "TV norm: sum of abs(gradient). Ringing INCREASES TV.     Good deblur: sharper W",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L171",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_180",
+      "label": "Strong-edge boost vs weak-region boost.     Uses cv2.Sobel for correct pixel-al",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L180",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_199",
+      "label": "Laplacian variance. Higher = sharper BUT also higher with ringing.",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L199",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_205",
+      "label": "Return dict of basic image statistics.",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L205",
+      "_origin": "ast"
+    },
+    {
+      "id": "evaluate_rationale_221",
+      "label": "Complete evaluation: returns all metrics in one dict.          Returns:",
+      "file_type": "rationale",
+      "source_file": "evaluate.py",
+      "source_location": "L221",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader",
+      "label": "h5_loader.py",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_detect_h5_format",
+      "label": "detect_h5_format()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L21",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_load_episode_h5",
+      "label": "load_episode_h5()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L38",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_load_droid_h5",
+      "label": "load_droid_h5()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L128",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_episodeframereader",
+      "label": "EpisodeFrameReader",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L199",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_episodeframereader_init",
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L201",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_episodeframereader_read_frame",
+      "label": ".read_frame()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L205",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_episodeframereader_close",
+      "label": ".close()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L226",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_droidframereader",
+      "label": "DroidFrameReader",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L230",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_droidframereader_init",
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L232",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_droidframereader_read_frame",
+      "label": ".read_frame()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L238",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_droidframereader_close",
+      "label": ".close()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L250",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_load_kinova_h5",
+      "label": "load_kinova_h5()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L258",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_kinovaframereader",
+      "label": "KinovaFrameReader",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L312",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_kinovaframereader_init",
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L314",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_kinovaframereader_read_frame",
+      "label": ".read_frame()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L318",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_kinovaframereader_close",
+      "label": ".close()",
+      "file_type": "code",
+      "source_file": "h5_loader.py",
+      "source_location": "L324",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_rationale_1",
+      "label": "h5_loader.py \u2014 DROID/Episode h5 \u6570\u636e\u52a0\u8f7d\u5668 =========================================",
+      "file_type": "rationale",
+      "source_file": "h5_loader.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_rationale_22",
+      "label": "\u81ea\u52a8\u68c0\u6d4b h5 \u662f DROID \u683c\u5f0f\u8fd8\u662f Episode \u683c\u5f0f",
+      "file_type": "rationale",
+      "source_file": "h5_loader.py",
+      "source_location": "L22",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_rationale_39",
+      "label": "\u8bfb\u53d6 episode_XXXX.h5 \u683c\u5f0f\u3002      \u652f\u6301\u4e24\u79cd\u683c\u5f0f:     [\u65b0\u683c\u5f0f] camera/rgb + robot/tool_twist",
+      "file_type": "rationale",
+      "source_file": "h5_loader.py",
+      "source_location": "L39",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_rationale_129",
+      "label": "\u8bfb\u53d6 DROID trajectory.h5 \u683c\u5f0f + \u5916\u7f6e MP4\u3002",
+      "file_type": "rationale",
+      "source_file": "h5_loader.py",
+      "source_location": "L129",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_rationale_200",
+      "label": "\u4ece episode h5 \u7684 JPEG \u5b57\u8282\u89e3\u7801\u5e27",
+      "file_type": "rationale",
+      "source_file": "h5_loader.py",
+      "source_location": "L200",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_rationale_231",
+      "label": "\u4ece DROID MP4 \u8bfb\u53d6\u5e27\uff0c\u652f\u6301\u65f6\u95f4\u6233\u5bf9\u9f50",
+      "file_type": "rationale",
+      "source_file": "h5_loader.py",
+      "source_location": "L231",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_rationale_239",
+      "label": "\u6309 step \u7d22\u5f15\u8bfb\u53d6\u5bf9\u5e94\u89c6\u9891\u5e27\uff08\u57fa\u4e8e\u65f6\u95f4\u6233\u5bf9\u9f50\uff09",
+      "file_type": "rationale",
+      "source_file": "h5_loader.py",
+      "source_location": "L239",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_rationale_259",
+      "label": "\u8bfb\u53d6 RLDX \u98ce\u683c Kinova h5 \u683c\u5f0f\u3002      h5 \u7ed3\u6784:       obs/image          (N, H, W) uint8",
+      "file_type": "rationale",
+      "source_file": "h5_loader.py",
+      "source_location": "L259",
+      "_origin": "ast"
+    },
+    {
+      "id": "h5_loader_rationale_313",
+      "label": "\u76f4\u63a5\u4ece kinova h5 \u7684\u7070\u5ea6\u56fe\u50cf\u6570\u7ec4\u8bfb\u53d6\u5e27",
+      "file_type": "rationale",
+      "source_file": "h5_loader.py",
+      "source_location": "L313",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur",
+      "label": "joint_deblur.py",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_euler_zyx_to_rotmat",
+      "label": "euler_zyx_to_rotmat()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L21",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_compute_psf_from_pose",
+      "label": "compute_psf_from_pose()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L34",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_dh_matrix",
+      "label": "dh_matrix()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L68",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_forward_kinematics",
+      "label": "forward_kinematics()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L80",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_get_geometric_jacobian",
+      "label": "get_geometric_jacobian()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L100",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_get_camera_velocity",
+      "label": "get_camera_velocity()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L131",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_compute_interaction_matrix",
+      "label": "compute_interaction_matrix()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L180",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_compute_psf",
+      "label": "compute_psf()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L204",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_compute_psf_map",
+      "label": "compute_psf_map()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L252",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_create_motion_psf",
+      "label": "create_motion_psf()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L307",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_pad_psf",
+      "label": "pad_psf()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L347",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_spatial_wiener_deconvolution",
+      "label": "spatial_wiener_deconvolution()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L374",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_spatial_richardson_lucy",
+      "label": "spatial_richardson_lucy()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L402",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_wiener_deconvolution",
+      "label": "wiener_deconvolution()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L434",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_richardson_lucy",
+      "label": "richardson_lucy()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L458",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_tv_deconv",
+      "label": "tv_deconv()",
+      "file_type": "code",
+      "source_file": "joint_deblur.py",
+      "source_location": "L478",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_1",
+      "label": "joint_deblur.py \u2014 \u7528\u5173\u8282\u89d2\u6570\u636e\u53bb\u6a21\u7cca ======================================== \u6838\u5fc3\u529f\u80fd\uff1a\u4ece\u673a\u5668\u4eba",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_22",
+      "label": "ZYX Euler angles (deg) -> 3x3 rotation matrix.",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L22",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_37",
+      "label": "Compute PSF from h5 tool_pose + tool_twist or direct v_cam_6d.",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L37",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_69",
+      "label": "\u6807\u51c6 D-H \u53c2\u6570 \u2192 4\u00d74 \u9f50\u6b21\u53d8\u6362\u77e9\u9635",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L69",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_81",
+      "label": "\u6b63\u8fd0\u52a8\u5b66\uff1a7 \u4e2a\u5173\u8282\u89d2 \u2192 \u672b\u7aef\u4f4d\u59ff\u3002          \u53c2\u6570:         q (7,): \u5173\u8282\u89d2\uff08\u5f27\u5ea6\uff09         robot (Robo",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L81",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_101",
+      "label": "\u51e0\u4f55\u96c5\u53ef\u6bd4\u77e9\u9635 J(q)\uff1a\u5173\u8282\u89d2\u901f\u5ea6 \u2192 \u672b\u7aef\u901f\u5ea6\u3002          \u53c2\u6570:         q (7,): \u5173\u8282\u89d2\uff08\u5f27\u5ea6\uff09         robo",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L101",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_132",
+      "label": "\u5173\u8282\u89d2\u901f\u5ea6 \u2192 \u76f8\u673a\u5728\u57fa\u5ea7\u7cfb\u4e2d\u7684\u901f\u5ea6\u3002          \u76f8\u673a\u5b89\u88c5\u5728\u672b\u7aef\u6cd5\u5170\u4e0a\uff0c\u901a\u8fc7\u624b\u773c\u6807\u5b9a\u53c2\u6570 R_he / t_he     \u5c06\u672b\u7aef\u901f\u5ea6\u8f6c\u6362\u5230\u76f8\u673a\u5750\u6807",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L132",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_181",
+      "label": "\u901f\u5ea6-\u50cf\u7d20\u96c5\u53ef\u6bd4\uff08\u4ea4\u4e92\u77e9\u9635\uff09\u3002          \u516c\u5f0f\uff1a     [du/dt]   [ -fx/Z   0       u_c/Z    u_c*v_c",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L181",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_207",
+      "label": "\u6838\u5fc3\u51fd\u6570\uff1a\u4ece\u673a\u5668\u4eba\u5173\u8282\u89d2\u63a8\u7b97\u8fd0\u52a8\u6a21\u7cca PSF\u3002          \u5b8c\u6574\u8ba1\u7b97\u94fe\uff1a     q, q_dot \u2192 \u6b63\u8fd0\u52a8\u5b66 \u2192 \u96c5\u53ef\u6bd4 \u2192 \u672b\u7aef\u901f\u5ea6",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L207",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_255",
+      "label": "\u8ba1\u7b97\u7a7a\u95f4\u53d8\u5316 PSF \u5730\u56fe\u3002          \u5bf9\u56fe\u50cf\u7684\u4e0d\u540c\u533a\u57df\u5206\u522b\u8ba1\u7b97 PSF\uff0c\u56e0\u4e3a\u65cb\u8f6c\u8fd0\u52a8\u65f6     \u56fe\u50cf\u4e0d\u540c\u4f4d\u7f6e\u7684\u6a21\u7cca\u65b9\u5411\u548c\u957f\u5ea6\u4e0d\u540c\u3002",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L255",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_308",
+      "label": "Create motion blur PSF using Bresenham's line algorithm.     Visits each pixel",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L308",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_348",
+      "label": "Pad PSF to image size and shift its centroid to (0,0).      This is critical f",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L348",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_376",
+      "label": "Spatially-varying Wiener deconvolution with overlapping patches and cosine blend",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L376",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_404",
+      "label": "Spatially-varying RL deconvolution with overlapping patches and cosine blending.",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L404",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_435",
+      "label": "\u7ef4\u7eb3\u6ee4\u6ce2\u53bb\u5377\u79ef\u3002          \u9891\u57df\u516c\u5f0f\uff1a     F(u,v) = H* / (|H|^2 + K) * G          \u5176\u4e2d H = F",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L435",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_459",
+      "label": "Richardson-Lucy iterative deconvolution.     x_{k+1} = x_k * (H^T * (b / (H * x",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L459",
+      "_origin": "ast"
+    },
+    {
+      "id": "joint_deblur_rationale_479",
+      "label": "TV-L2 deconvolution via ADMM.          Solves: min_x  ||h*x - b||^2 + lam * ||",
+      "file_type": "rationale",
+      "source_file": "joint_deblur.py",
+      "source_location": "L479",
+      "_origin": "ast"
+    },
+    {
+      "id": "kinova_batch",
+      "label": "kinova_batch.py",
+      "file_type": "code",
+      "source_file": "kinova_batch.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "kinova_batch_make_comparison",
+      "label": "make_comparison()",
+      "file_type": "code",
+      "source_file": "kinova_batch.py",
+      "source_location": "L31",
+      "_origin": "ast"
+    },
+    {
+      "id": "kinova_batch_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "kinova_batch.py",
+      "source_location": "L50",
+      "_origin": "ast"
+    },
+    {
+      "id": "kinova_batch_rationale_1",
+      "label": "kinova_batch.py \u2014 \u6279\u91cf\u8bc4\u4f30\u811a\u672c (Kinova h5 \u683c\u5f0f) =======================================",
+      "file_type": "rationale",
+      "source_file": "kinova_batch.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "pipeline",
+      "label": "pipeline.py",
+      "file_type": "code",
+      "source_file": "pipeline.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "pipeline_save_deblur_result",
+      "label": "save_deblur_result()",
+      "file_type": "code",
+      "source_file": "pipeline.py",
+      "source_location": "L50",
+      "_origin": "ast"
+    },
+    {
+      "id": "pipeline_setup_output_dirs",
+      "label": "setup_output_dirs()",
+      "file_type": "code",
+      "source_file": "pipeline.py",
+      "source_location": "L95",
+      "_origin": "ast"
+    },
+    {
+      "id": "pipeline_run_h5_pipeline",
+      "label": "run_h5_pipeline()",
+      "file_type": "code",
+      "source_file": "pipeline.py",
+      "source_location": "L111",
+      "_origin": "ast"
+    },
+    {
+      "id": "pipeline_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "pipeline.py",
+      "source_location": "L297",
+      "_origin": "ast"
+    },
+    {
+      "id": "pipeline_rationale_1",
+      "label": ") main.py - \u4e3b\u51fd\u6570\uff1a\u9010\u5e27\u53bb\u6a21\u7ccapipeline ========================================= \u529f\u80fd\uff1a",
+      "file_type": "rationale",
+      "source_file": "pipeline.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "pipeline_rationale_52",
+      "label": "\u4fdd\u5b58\u5355\u5e27\u53bb\u6a21\u7cca\u7ed3\u679c     psf_meta: \u683c\u5f0f\u540cprocess_frame\u8fd4\u56de\u503c (mode, psf, du, dv) \u6216 (mode, psf_ma",
+      "file_type": "rationale",
+      "source_file": "pipeline.py",
+      "source_location": "L52",
+      "_origin": "ast"
+    },
+    {
+      "id": "process_one_frame",
+      "label": "process_one_frame.py",
+      "file_type": "code",
+      "source_file": "process_one_frame.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "process_one_frame_imwrite_pil",
+      "label": "imwrite_pil()",
+      "file_type": "code",
+      "source_file": "process_one_frame.py",
+      "source_location": "L24",
+      "_origin": "ast"
+    },
+    {
+      "id": "process_one_frame_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "process_one_frame.py",
+      "source_location": "L32",
+      "_origin": "ast"
+    },
+    {
+      "id": "process_one_frame_rationale_1",
+      "label": "process_one_frame.py \u2014 \u5355\u5e27\u53bb\u6a21\u7cca + \u5bf9\u6bd4\u56fe + \u8bc4\u4f30  \u7528\u6cd5:   python process_one_frame.py --",
+      "file_type": "rationale",
+      "source_file": "process_one_frame.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "robot_configs",
+      "label": "robot_configs.py",
+      "file_type": "code",
+      "source_file": "robot_configs.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "robot_configs_get_robot",
+      "label": "get_robot()",
+      "file_type": "code",
+      "source_file": "robot_configs.py",
+      "source_location": "L152",
+      "_origin": "ast"
+    },
+    {
+      "id": "robot_configs_get_hand_eye",
+      "label": "get_hand_eye()",
+      "file_type": "code",
+      "source_file": "robot_configs.py",
+      "source_location": "L173",
+      "_origin": "ast"
+    },
+    {
+      "id": "robot_configs_get_configs",
+      "label": "get_configs()",
+      "file_type": "code",
+      "source_file": "robot_configs.py",
+      "source_location": "L197",
+      "_origin": "ast"
+    },
+    {
+      "id": "robot_configs_rationale_153",
+      "label": "\u6309\u540d\u79f0\u83b7\u53d6\u673a\u5668\u4eba DH \u53c2\u6570\u914d\u7f6e\u3002      \u53c2\u6570:         name (str): \u673a\u5668\u4eba\u540d\u79f0\uff08\u9ed8\u8ba4 \"panda\"\uff09      \u8fd4\u56de:",
+      "file_type": "rationale",
+      "source_file": "robot_configs.py",
+      "source_location": "L153",
+      "_origin": "ast"
+    },
+    {
+      "id": "robot_configs_rationale_174",
+      "label": "\u6309\u540d\u79f0\u83b7\u53d6\u624b\u773c\u6807\u5b9a\u53c2\u6570\u3002      \u53c2\u6570:         name (str \u6216 None): \u624b\u773c\u6807\u5b9a\u540d\u79f0\u3002         \u82e5\u4e3a None\uff0c\u8fd4\u56de\u9ed8",
+      "file_type": "rationale",
+      "source_file": "robot_configs.py",
+      "source_location": "L174",
+      "_origin": "ast"
+    },
+    {
+      "id": "robot_configs_rationale_198",
+      "label": "\u6309\u540d\u79f0\u540c\u65f6\u83b7\u53d6\u673a\u5668\u4eba\u914d\u7f6e\u548c\u53ef\u9009\u7684\u624b\u773c\u6807\u5b9a\u3002      \u8fd9\u662f\u4e3b\u8981\u7684\u4fbf\u6377\u51fd\u6570\u3002\u4f20\u5165 hand_eye_name \u5373\u53ef\u540c\u65f6\u83b7\u53d6     \u673a\u68b0\u81c2\u53c2\u6570\u548c\u76f8\u673a\u5230\u6cd5\u5170\u76d8",
+      "file_type": "rationale",
+      "source_file": "robot_configs.py",
+      "source_location": "L198",
+      "_origin": "ast"
+    },
+    {
+      "id": "sync",
+      "label": "sync.sh",
+      "file_type": "code",
+      "source_file": "sync.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast"
+    },
+    {
+      "id": "sync_sh__entry",
+      "label": "sync.sh script",
+      "file_type": "code",
+      "source_file": "sync.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk",
+      "label": "verify_fk.py",
+      "file_type": "code",
+      "source_file": "verify_fk.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_rot_x",
+      "label": "rot_x()",
+      "file_type": "code",
+      "source_file": "verify_fk.py",
+      "source_location": "L28",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_rot_y",
+      "label": "rot_y()",
+      "file_type": "code",
+      "source_file": "verify_fk.py",
+      "source_location": "L32",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_rot_z",
+      "label": "rot_z()",
+      "file_type": "code",
+      "source_file": "verify_fk.py",
+      "source_location": "L36",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_urdf_origin",
+      "label": "urdf_origin()",
+      "file_type": "code",
+      "source_file": "verify_fk.py",
+      "source_location": "L40",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_urdf_fk",
+      "label": "urdf_fk()",
+      "file_type": "code",
+      "source_file": "verify_fk.py",
+      "source_location": "L59",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_rotation_matrix_to_euler_zyx",
+      "label": "rotation_matrix_to_euler_zyx()",
+      "file_type": "code",
+      "source_file": "verify_fk.py",
+      "source_location": "L70",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "verify_fk.py",
+      "source_location": "L84",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_rationale_1",
+      "label": "verify_fk.py \u2014 \u9a8c\u8bc1 forward_kinematics \u80fd\u5426\u6b63\u786e\u8ba1\u7b97\u672b\u6001\u4f4d\u59ff ===============================",
+      "file_type": "rationale",
+      "source_file": "verify_fk.py",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_rationale_41",
+      "label": "URDF origin = Trans(xyz) * Rot_z(rpy[2]) * Rot_y(rpy[1]) * Rot_x(rpy[0])",
+      "file_type": "rationale",
+      "source_file": "verify_fk.py",
+      "source_location": "L41",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_rationale_60",
+      "label": "URDF-based FK for Kinova Gen3",
+      "file_type": "rationale",
+      "source_file": "verify_fk.py",
+      "source_location": "L60",
+      "_origin": "ast"
+    },
+    {
+      "id": "verify_fk_rationale_71",
+      "label": "R -> ZYX Euler angles (degrees)",
+      "file_type": "rationale",
+      "source_file": "verify_fk.py",
+      "source_location": "L71",
+      "_origin": "ast"
+    }
+  ],
+  "edges": [
+    {
+      "source": "batch_analyze",
+      "target": "sys",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "os",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "time",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "numpy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "cv2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "h5_loader",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "joint_deblur",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "evaluate",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "robot_configs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "batch_analyze_judge_lap",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "batch_analyze_judge_ten",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "batch_analyze_judge_tv_ratio",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "batch_analyze_judge_edge",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "batch_analyze_judge_psnr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "batch_analyze_judge_ssim",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "batch_analyze_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "numpy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "math",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "cv2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_psnr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_ssim",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_laplacian_sharpness",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L55",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_tenengrad",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L64",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_match_histogram",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L79",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_evaluate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L108",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_compare_sharpness",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L153",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_total_variation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L170",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_edge_strength_ratio",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L179",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_laplacian_variance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L198",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_image_stats",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L204",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate",
+      "target": "evaluate_full_evaluate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L220",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_evaluate",
+      "target": "evaluate_psnr",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L118",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_evaluate",
+      "target": "evaluate_ssim",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L119",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_evaluate",
+      "target": "evaluate_match_histogram",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L121",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_evaluate",
+      "target": "evaluate_tenengrad",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L125",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_evaluate",
+      "target": "evaluate_laplacian_sharpness",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L129",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_evaluate",
+      "target": "evaluate_total_variation",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L146",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_evaluate",
+      "target": "evaluate_edge_strength_ratio",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L149",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_compare_sharpness",
+      "target": "evaluate_evaluate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L155",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_full_evaluate",
+      "target": "evaluate_evaluate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L229",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_full_evaluate",
+      "target": "evaluate_image_stats",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L230",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_1",
+      "target": "evaluate",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_14",
+      "target": "evaluate_psnr",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_29",
+      "target": "evaluate_ssim",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_65",
+      "target": "evaluate_tenengrad",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L65",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_80",
+      "target": "evaluate_match_histogram",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L80",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_109",
+      "target": "evaluate_evaluate",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L109",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_154",
+      "target": "evaluate_compare_sharpness",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L154",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_171",
+      "target": "evaluate_total_variation",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L171",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_180",
+      "target": "evaluate_edge_strength_ratio",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L180",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_199",
+      "target": "evaluate_laplacian_variance",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L199",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_205",
+      "target": "evaluate_image_stats",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L205",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "evaluate_rationale_221",
+      "target": "evaluate_full_evaluate",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "evaluate.py",
+      "source_location": "L221",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "h5py",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "cv2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "numpy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "h5_loader_detect_h5_format",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "h5_loader_load_episode_h5",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "h5_loader_load_droid_h5",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L128",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "h5_loader_episodeframereader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L199",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_episodeframereader",
+      "target": "h5_loader_episodeframereader_init",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L201",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_episodeframereader",
+      "target": "h5_loader_episodeframereader_read_frame",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L205",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_episodeframereader",
+      "target": "h5_loader_episodeframereader_close",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L226",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "h5_loader_droidframereader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L230",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_droidframereader",
+      "target": "h5_loader_droidframereader_init",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L232",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_droidframereader",
+      "target": "h5_loader_droidframereader_read_frame",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L238",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_droidframereader",
+      "target": "h5_loader_droidframereader_close",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L250",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "h5_loader_load_kinova_h5",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L258",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader",
+      "target": "h5_loader_kinovaframereader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L312",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_kinovaframereader",
+      "target": "h5_loader_kinovaframereader_init",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L314",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_kinovaframereader",
+      "target": "h5_loader_kinovaframereader_read_frame",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L318",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_kinovaframereader",
+      "target": "h5_loader_kinovaframereader_close",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L324",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_rationale_1",
+      "target": "h5_loader",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_rationale_22",
+      "target": "h5_loader_detect_h5_format",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_rationale_39",
+      "target": "h5_loader_load_episode_h5",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L39",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_rationale_129",
+      "target": "h5_loader_load_droid_h5",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L129",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_rationale_200",
+      "target": "h5_loader_episodeframereader",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L200",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_rationale_231",
+      "target": "h5_loader_droidframereader",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L231",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_rationale_239",
+      "target": "h5_loader_droidframereader_read_frame",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L239",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_rationale_259",
+      "target": "h5_loader_load_kinova_h5",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L259",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "h5_loader_rationale_313",
+      "target": "h5_loader_kinovaframereader",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "h5_loader.py",
+      "source_location": "L313",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "numpy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "math",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "robot_configs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L62",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_dh_matrix",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L68",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_forward_kinematics",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L80",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_get_geometric_jacobian",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_get_camera_velocity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L131",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_compute_interaction_matrix",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L180",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_compute_psf",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L204",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_compute_psf_map",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L252",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_create_motion_psf",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L307",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_pad_psf",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L347",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_spatial_wiener_deconvolution",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L374",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_spatial_richardson_lucy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L402",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L434",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_richardson_lucy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L458",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "joint_deblur_tv_deconv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L478",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_compute_psf_from_pose",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_compute_psf_from_pose",
+      "target": "joint_deblur_compute_interaction_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L57",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_compute_psf_from_pose",
+      "target": "joint_deblur_create_motion_psf",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L61",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_forward_kinematics",
+      "target": "joint_deblur_dh_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L95",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_get_geometric_jacobian",
+      "target": "joint_deblur_dh_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L116",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_get_camera_velocity",
+      "target": "joint_deblur_get_geometric_jacobian",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L157",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_compute_psf",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L236",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_compute_psf",
+      "target": "joint_deblur_get_camera_velocity",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L244",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_compute_psf",
+      "target": "joint_deblur_compute_interaction_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L245",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_compute_psf",
+      "target": "joint_deblur_create_motion_psf",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L249",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_compute_psf_map",
+      "target": "joint_deblur_get_camera_velocity",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L276",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_compute_psf_map",
+      "target": "joint_deblur_compute_interaction_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L286",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_compute_psf_map",
+      "target": "joint_deblur_create_motion_psf",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L292",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_spatial_wiener_deconvolution",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L392",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_spatial_richardson_lucy",
+      "target": "joint_deblur_richardson_lucy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L420",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_wiener_deconvolution",
+      "target": "joint_deblur_pad_psf",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L451",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_richardson_lucy",
+      "target": "joint_deblur_pad_psf",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L464",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_tv_deconv",
+      "target": "joint_deblur_pad_psf",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L505",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_1",
+      "target": "joint_deblur",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_22",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_37",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L37",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_69",
+      "target": "joint_deblur_dh_matrix",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L69",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_81",
+      "target": "joint_deblur_forward_kinematics",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L81",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_101",
+      "target": "joint_deblur_get_geometric_jacobian",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L101",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_132",
+      "target": "joint_deblur_get_camera_velocity",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L132",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_181",
+      "target": "joint_deblur_compute_interaction_matrix",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L181",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_207",
+      "target": "joint_deblur_compute_psf",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L207",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_255",
+      "target": "joint_deblur_compute_psf_map",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L255",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_308",
+      "target": "joint_deblur_create_motion_psf",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L308",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_348",
+      "target": "joint_deblur_pad_psf",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L348",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_376",
+      "target": "joint_deblur_spatial_wiener_deconvolution",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L376",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_404",
+      "target": "joint_deblur_spatial_richardson_lucy",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L404",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_435",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L435",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_459",
+      "target": "joint_deblur_richardson_lucy",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L459",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur_rationale_479",
+      "target": "joint_deblur_tv_deconv",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L479",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "sys",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "os",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "time",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "zipfile",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "numpy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "cv2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "h5_loader",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "joint_deblur",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "evaluate",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "robot_configs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "kinova_batch_make_comparison",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L31",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "kinova_batch_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L50",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_main",
+      "target": "kinova_batch_make_comparison",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L225",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_rationale_1",
+      "target": "kinova_batch",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "numpy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "cv2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "os",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "sys",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "csv",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "time",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "argparse",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L31",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "joint_deblur",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "h5_loader",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "evaluate",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "robot_configs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L44",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "pipeline_save_deblur_result",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L50",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "pipeline_setup_output_dirs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L95",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "pipeline_run_h5_pipeline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L111",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "pipeline_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L297",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "pipeline_setup_output_dirs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L189",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "pipeline_save_deblur_result",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L250",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_main",
+      "target": "pipeline_run_h5_pipeline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L359",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_rationale_1",
+      "target": "pipeline",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_rationale_52",
+      "target": "pipeline_save_deblur_result",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L52",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "os",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "sys",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "cv2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "numpy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "pil",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "h5_loader",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "joint_deblur",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "evaluate",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "robot_configs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "process_one_frame_imwrite_pil",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "process_one_frame_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame_main",
+      "target": "process_one_frame_imwrite_pil",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L214",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame_rationale_1",
+      "target": "process_one_frame",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "robot_configs",
+      "target": "numpy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "robot_configs.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "robot_configs",
+      "target": "collections",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "robot_configs.py",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "robot_configs",
+      "target": "robot_configs_get_robot",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "robot_configs.py",
+      "source_location": "L152",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "robot_configs",
+      "target": "robot_configs_get_hand_eye",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "robot_configs.py",
+      "source_location": "L173",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "robot_configs",
+      "target": "robot_configs_get_configs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "robot_configs.py",
+      "source_location": "L197",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "robot_configs_get_configs",
+      "target": "robot_configs_get_robot",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "robot_configs.py",
+      "source_location": "L216",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "robot_configs_get_configs",
+      "target": "robot_configs_get_hand_eye",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "robot_configs.py",
+      "source_location": "L217",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "robot_configs_rationale_153",
+      "target": "robot_configs_get_robot",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "robot_configs.py",
+      "source_location": "L153",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "robot_configs_rationale_174",
+      "target": "robot_configs_get_hand_eye",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "robot_configs.py",
+      "source_location": "L174",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "robot_configs_rationale_198",
+      "target": "robot_configs_get_configs",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "robot_configs.py",
+      "source_location": "L198",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "sync",
+      "target": "sync_sh__entry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "sync.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "numpy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "math",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "h5py",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "sys",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "argparse",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "joint_deblur",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "robot_configs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "verify_fk_rot_x",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "verify_fk_rot_y",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "verify_fk_rot_z",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "verify_fk_urdf_origin",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "verify_fk_urdf_fk",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L59",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "verify_fk_rotation_matrix_to_euler_zyx",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L70",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "verify_fk_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L84",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_urdf_origin",
+      "target": "verify_fk_rot_z",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_urdf_origin",
+      "target": "verify_fk_rot_y",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_urdf_origin",
+      "target": "verify_fk_rot_x",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_urdf_fk",
+      "target": "verify_fk_urdf_origin",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L64",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_urdf_fk",
+      "target": "verify_fk_rot_z",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L65",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_main",
+      "target": "verify_fk_rotation_matrix_to_euler_zyx",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L112",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_main",
+      "target": "verify_fk_urdf_fk",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L126",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_rationale_1",
+      "target": "verify_fk",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_rationale_41",
+      "target": "verify_fk_urdf_origin",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_rationale_60",
+      "target": "verify_fk_urdf_fk",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L60",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_rationale_71",
+      "target": "verify_fk_rotation_matrix_to_euler_zyx",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L71",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "h5_loader_load_episode_h5",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "h5_loader_episodeframereader",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "joint_deblur_tv_deconv",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "joint_deblur_richardson_lucy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "joint_deblur_get_camera_velocity",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "evaluate_full_evaluate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze",
+      "target": "robot_configs_get_robot",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "joint_deblur",
+      "target": "robot_configs_get_configs",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "joint_deblur.py",
+      "source_location": "L62",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "h5_loader_load_kinova_h5",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "h5_loader_kinovaframereader",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "joint_deblur_tv_deconv",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "joint_deblur_richardson_lucy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "evaluate_full_evaluate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch",
+      "target": "robot_configs_get_robot",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "joint_deblur_compute_psf",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "joint_deblur_compute_psf_map",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "joint_deblur_richardson_lucy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "joint_deblur_tv_deconv",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "joint_deblur_spatial_wiener_deconvolution",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "joint_deblur_spatial_richardson_lucy",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "h5_loader_detect_h5_format",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "h5_loader_load_episode_h5",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "h5_loader_load_droid_h5",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "h5_loader_episodeframereader",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "h5_loader_droidframereader",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "h5_loader_load_kinova_h5",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "h5_loader_kinovaframereader",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "evaluate_full_evaluate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline",
+      "target": "robot_configs_get_robot",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L44",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "h5_loader_load_episode_h5",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "h5_loader_episodeframereader",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "joint_deblur_tv_deconv",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "evaluate_full_evaluate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame",
+      "target": "robot_configs_get_robot",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "joint_deblur_forward_kinematics",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk",
+      "target": "robot_configs_get_robot",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze_main",
+      "target": "h5_loader_load_episode_h5",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L56",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze_main",
+      "target": "h5_loader_episodeframereader",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L57",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze_main",
+      "target": "robot_configs_get_robot",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L64",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze_main",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L97",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze_main",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze_main",
+      "target": "joint_deblur_get_camera_velocity",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L118",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze_main",
+      "target": "joint_deblur_tv_deconv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L137",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze_main",
+      "target": "joint_deblur_richardson_lucy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L139",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze_main",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L141",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "batch_analyze_main",
+      "target": "evaluate_full_evaluate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "batch_analyze.py",
+      "source_location": "L143",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_main",
+      "target": "h5_loader_load_kinova_h5",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L99",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_main",
+      "target": "h5_loader_kinovaframereader",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_main",
+      "target": "robot_configs_get_robot",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_main",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L141",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_main",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L153",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_main",
+      "target": "joint_deblur_tv_deconv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L175",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_main",
+      "target": "joint_deblur_richardson_lucy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L177",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_main",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L179",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "kinova_batch_main",
+      "target": "evaluate_full_evaluate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "kinova_batch.py",
+      "source_location": "L182",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "robot_configs_get_robot",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L131",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "h5_loader_detect_h5_format",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L141",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "h5_loader_load_episode_h5",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L149",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "h5_loader_episodeframereader",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L151",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "h5_loader_load_kinova_h5",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L159",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "h5_loader_kinovaframereader",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L160",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "h5_loader_load_droid_h5",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L170",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "h5_loader_droidframereader",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L175",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L220",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L230",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "joint_deblur_tv_deconv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L245",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "pipeline_run_h5_pipeline",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "pipeline.py",
+      "source_location": "L247",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame_main",
+      "target": "h5_loader_load_episode_h5",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L77",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame_main",
+      "target": "h5_loader_episodeframereader",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L78",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame_main",
+      "target": "robot_configs_get_robot",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L97",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame_main",
+      "target": "joint_deblur_euler_zyx_to_rotmat",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L104",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame_main",
+      "target": "joint_deblur_compute_psf_from_pose",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L116",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame_main",
+      "target": "joint_deblur_tv_deconv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L143",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame_main",
+      "target": "joint_deblur_wiener_deconvolution",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L145",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "process_one_frame_main",
+      "target": "evaluate_full_evaluate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "process_one_frame.py",
+      "source_location": "L149",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_main",
+      "target": "robot_configs_get_robot",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L92",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "verify_fk_main",
+      "target": "joint_deblur_forward_kinematics",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "verify_fk.py",
+      "source_location": "L110",
+      "weight": 1.0,
+      "_origin": "ast"
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

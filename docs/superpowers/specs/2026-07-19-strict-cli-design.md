@@ -37,7 +37,7 @@ Entry-point-specific arguments are:
 
 - pipeline: `--max-frames`, `--output`, `--overwrite`;
 - batch: `--max-frames`, `--show-frame`, `--output-root`, `--overwrite`;
-- one frame: `--frame`, `--reverse-psf`, `--output`, `--overwrite`.
+- one frame: `--frame`, `--output`, `--overwrite`.
 
 ## Configuration model
 

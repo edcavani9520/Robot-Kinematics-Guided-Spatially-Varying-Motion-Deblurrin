@@ -1,151 +1,128 @@
-# Robot-Kinematics-Guided Motion Deblurring
+# Robot-Kinematics-Guided RGB Motion Deblurring
 
-利用机器人末端速度（tool_twist）推算腕载相机运动，通过 Bresenham 光栅化 + Wiener / TV-L2 ADMM 反卷积去除运动模糊。
+利用 Kinova Gen3 关节运动推算相机运动和运动模糊 PSF，并对 RGB 三个通道分别执行 Wiener、Richardson–Lucy 或 TV-L2 去卷积。
 
-## 快速测试
+## 唯一支持的数据格式
 
-`ash
-# 单帧 Wiener
-python process_one_frame.py --frame 77 --K 0.03
+程序只接受当前数据采集器生成的 HDF5 episode：
 
-# 单帧 TV-L2（推荐，无振铃）
-python process_one_frame.py --frame 77 --method tv --tv-lam 0.002
+```text
+obs/image    (N, H, W, 3) uint8    RGB 彩色图像
+obs/proprio  (N, 8)       float64  7 个关节角（度）+ 夹爪值
+action       (N, 7)       float64  6 维末端位姿增量 + 夹爪目标
+timestamps   (N,)         float64  Unix 时间戳（秒）
+```
 
-# 批量评估
-python batch_analyze.py --h5 episode_0001.h5 --K 0.03
+`data_collector.py` 在写入前执行 `BGR → RGB`，因此 `obs/image` 的通道顺序固定为 RGB。程序不再检测或兼容灰度图、`camera/rgb` JPEG、DROID MP4 或其他旧格式。
 
-# 全流水线
-python pipeline.py --h5 episode_0001.h5 --robot kinova-gen3 --hand-eye kinova-gen3
-`
+加载器会检查数据集名称、数组形状、图像类型、帧数对齐和时间戳递增关系；格式不正确时会立即给出错误。
 
-## 流水线
+## 彩色去模糊方式
 
-`
-h5 tool_twist + tool_pose ──→ 手眼标定 ──→ 相机速度 v_cam
-                                      │
-                               交互矩阵 ──→ 像素位移 (du, dv)
-                                      │
-                          Bresenham 光栅化 → 运动模糊 PSF
-                                      │
-                          ┌─ Wiener (快速, DC补偿)
-                          ├─ TV-L2 ADMM (无振铃, 推荐)
-                          └─ RL (最锐, 慢)
-`
+同一帧的 R、G、B 通道使用完全相同的 PSF 和算法参数分别去卷积，然后按 RGB 顺序合并。处理过程中不会对各通道分别归一化，避免额外色偏。
 
-## 文件结构
+评估方式：
 
-`
-├── pipeline.py            主流水线 (仅 H5 模式)
-├── process_one_frame.py   单帧去模糊 + 对比图 + 评估
-├── batch_analyze.py       批量评估 (h5 遍历)
-├── joint_deblur.py        核心算法：PSF → 反卷积
-│                          Wiener / TV-L2 / RL + Bresenham
-├── robot_configs.py       机器人 DH 参数 + 手眼标定
-├── h5_loader.py           H5 数据加载器 (Kinova/DROID/Episode)
-└── evaluate.py            评估：PSNR, SSIM, 锐度
-`
+- PSNR、SSIM、直方图匹配和像素统计使用完整 RGB 图像；
+- Laplacian、Tenengrad、TV 和 Edge Ratio 使用由 RGB 统一转换出的亮度图。
 
-## 环境要求
+## 环境
 
-`ash
-pip install numpy opencv-python h5py scipy
-`
+```powershell
+pip install numpy opencv-python h5py scipy pillow pytest
+```
 
-## 参数说明
+## 快速使用
 
-### 基本参数
+单帧处理：
+
+```powershell
+python process_one_frame.py --h5 episode_0001.h5 --frame 50 wiener --K 0.01
+python process_one_frame.py --h5 episode_0001.h5 --frame 50 tv --tv-lam 0.002
+python process_one_frame.py --h5 episode_0001.h5 --frame 50 rl --rl-iters 10
+```
+
+批量评估：
+
+```powershell
+python batch_analyze.py --h5 episode_0001.h5 wiener --K 0.01
+python batch_analyze.py --h5 episode_0002.h5 --max-frames 20 tv --tv-lam 0.002
+```
+
+完整流水线：
+
+```powershell
+python pipeline.py --h5 episode_0001.h5 --output deblur_output wiener --K 0.01
+```
+
+## 关键参数
 
 | 参数 | 默认值 | 说明 |
-|------|--------|------|
-| --h5 | 必填 | H5 文件路径 |
-| --robot | panda | 机器人 (panda / kinova-gen3) |
-| --hand-eye | simple | 手眼标定 (kinova-gen3 / droid-left 等) |
-| --K | 0.01 | Wiener 参数 (越小去模糊越强) |
-| --method | wiener | 反卷积方法 (wiener / tv / rl) |
-| --tv-lam | 0.002 | TV 正则化强度 |
-| --rl-iters | 30 | RL 迭代次数 |
-| --max-frames | 全部 | 限制帧数 |
-| --psf-sigma | 0.0 | PSF 高斯正则化 (0.3 可减少振铃) |
-| --reverse-psf | off | PSF 方向取反 (验证用) |
+|---|---:|---|
+| `--h5` | 必填/脚本默认值 | 当前格式 HDF5 episode |
+| 方法子命令 | 必填 | `wiener`、`rl` 或 `tv`；公共参数必须写在子命令前 |
+| `wiener --K` | `0.01` | 仅 Wiener 可用，必须大于 0 |
+| `wiener --adaptive-k` | 关闭 | 仅 Wiener 可用 |
+| `rl --rl-iters` | `30` | 仅 RL 可用，必须为正整数 |
+| `tv --tv-lam` | `0.002` | 仅 TV-L2 可用，必须大于 0 |
+| `--depth` | `0.5` | 有限且大于 0，目标深度（米） |
+| `--exposure` | H5，否则 `0.01` | V4L2 Microdia 手动曝光时间（秒）；显式参数优先 |
+| `--fx`, `--fy` | H5，否则约 `260.65` | 标签标称对角 FOV 75°、320×240 方形像素估计值；可成对覆盖 |
+| `--psf-sigma` | `0` | 有限且非负；0 表示关闭 |
+| `--max-frames` | 全部 | 正整数；0 和负数会被拒绝 |
 
-## 用法
+每次运行会在输出根目录下创建包含全部有效参数的独立子目录，并写入
+`run_config.json`。目标运行目录非空时默认拒绝覆盖；确认重跑同一配置时使用
+`--overwrite`。覆盖模式只清理已知生成物，发现未知文件会停止运行。
 
-### 单帧测试
+当前 episode 不保存绝对末端位姿，因此 PSF 使用 `obs/proprio` 的关节角和时间戳差分出的关节速度计算；深度使用明确的 `--depth` 参数。`action[:6]` 是位姿增量，不会被错误解释为直接测量的 `tool_twist`。
 
-`ash
-# Wiener
-python process_one_frame.py --frame 77 --K 0.03
+## 输出
 
-# TV-L2 (推荐, Laplacian +187)
-python process_one_frame.py --frame 77 --method tv --tv-lam 0.002
+完整流水线生成：
 
-# PSF 正则化减少振铃
-python process_one_frame.py --frame 77 --K 0.03 --psf-sigma 0.3
+```text
+deblur_output/
+├── blurred/                 RGB 原始帧
+├── deblurred/               RGB 去模糊帧
+├── comparison/              RGB 左右对比图
+├── deblurred_video.mp4      彩色视频
+├── comparison_video.mp4     彩色对比视频
+└── psf_report.csv
+```
 
-# 方向验证
-python process_one_frame.py --frame 77 --K 0.03 --reverse-psf
-`
+RGB 仅在调用 OpenCV 图片或视频写入接口时转换为 BGR；Pillow 输出直接使用 RGB。
 
-### 批量评估
+## 测试
 
-`ash
-python batch_analyze.py --h5 episode_0001.h5 --K 0.03
-python batch_analyze.py --h5 episode_0001.h5 --method tv --tv-lam 0.002
-`
+```powershell
+python -m pytest tests -v
+```
 
-### 流水线
+测试覆盖严格 HDF5 schema、RGB 通道顺序、关节速度、三种全局去卷积、空间去卷积、彩色评估，以及图片/视频输出边界。
 
-`ash
-python pipeline.py --h5 episode_0001.h5 --robot kinova-gen3 --hand-eye kinova-gen3
-python pipeline.py --h5 trajectory.h5 --hand-eye droid-left
-`
+## 实时 WS 推理与 RGB 去模糊
 
-## 核心算法
+实时入口为 `ws_inference_realtime_deblur.py`。它复用 Gen3 控制仓库中的
+`Pi05WebSocketControl`，只重写相机取图步骤：模型收到的
+`observation/image` 会被替换成实时 RGB Wiener 去模糊后的图像，控制和 WS
+推理流程保持不变。
 
-### 1. 手眼标定 (Kinova Gen3)
+公开仓库：
 
-- 安装：沿 EE Z 向上 0.11m → 绕 Y 向前倾斜 20° → 沿光轴向前 0.03m
-- R_he: 相机 Z_cam = [sin20°, 0, -cos20°]
-- 	_he: [0.01026, 0, 0.08181] 米
+- 去模糊代码：<https://github.com/edcavani9520/Robot-Kinematics-Guided-Spatially-Varying-Motion-Deblurrin.git>
+- Gen3 控制代码：<https://github.com/edcavani9520/fnii-gen3-controller.git>
 
-### 2. 深度计算 (光轴距离)
+推荐把两个仓库克隆为同级目录：
 
-`python
-# 沿相机光轴到桌面的物理距离，不受 EE roll 翻转影响
-depth = max(abs((table_z - cam_pos[2]) / abs(opt_z)), 0.02)
-`
+```powershell
+git clone https://github.com/edcavani9520/Robot-Kinematics-Guided-Spatially-Varying-Motion-Deblurrin.git
+git clone https://github.com/edcavani9520/fnii-gen3-controller.git
+cd Robot-Kinematics-Guided-Spatially-Varying-Motion-Deblurrin
+pip install numpy opencv-python scipy
+python ws_inference_realtime_deblur.py --controller-root ../fnii-gen3-controller --ws-host localhost --ws-port 8000 --K 0.01 --depth 0.5 --exposure 0.01
+```
 
-### 3. PSF (Bresenham + DC补偿)
-
-Bresenham 线算法替代 round()，权重完全均匀。Wiener 后自动 DC 补偿。
-
-### 4. 性能 (Frame 77)
-
-| 方法 | Laplacian | SSIM | 特点 |
-|------|:---------:|:----:|------|
-| Wiener K=0.03 | **+187** | 0.79 | 快速 |
-| **TV-L2 lam=0.002** | **+310** | 0.43 | **无振铃** |
-| RL 50 iters | ~+200 | ~0.60 | 最锐 |
-
-深度修正前后对比：
-
-| depth | Laplacian | 说明 |
-|:-----:|:---------:|------|
-| 0.3m (旧 fallback) | +125 | 常数值，不准 |
-| **0.055m (光轴距离)** | **+187** | **正确物理距离** |
-
-## 评估指标
-
-| 指标 | 含义 |
-|------|------|
-| Laplacian Variance | 无参考锐度，越大越清晰 |
-| Tenengrad | 梯度锐度 |
-| PSNR | 与模糊图的像素差异 |
-| SSIM | 结构相似度 |
-
-## 数据集
-
-| 数据 | 分辨率 | 同步 | 有效帧率 |
-|------|:------:|:----:|:--------:|
-| episode_0001 | 320×240 | ✅ 完美 | **100%** |
-| episode_0002 | 640×480 | ⚠️ 有偏移 | 66% |
+运行环境还需要 Gen3 控制仓库原本使用的 Kinova Kortex、OpenPI/WS 及相机依赖。
+脚本优先使用机械臂反馈的关节速度；反馈不可用时才使用带角度环绕处理的相邻帧差分。
+低于 `--min-motion-px` 的运动会直接旁路，避免静止图像被无意义地去卷积。

@@ -63,7 +63,7 @@ This prevents channel differences from being counted as spatial sharpness and ke
 
 ## Entry Points and Output
 
-`pipeline.py`, `batch_analyze.py`, `process_one_frame.py`, and `kinova_batch.py` pass RGB images directly into deconvolution and evaluation. Grayscale conversions, gray-named variables, and gray-to-BGR display reconstruction are removed.
+`pipeline.py`, `batch_analyze.py`, and `process_one_frame.py` pass RGB images directly into deconvolution and evaluation. Grayscale conversions, gray-named variables, and gray-to-BGR display reconstruction are removed. The duplicate `kinova_batch.py` entry point is deleted so `batch_analyze.py` is the only batch analyzer.
 
 OpenCV I/O boundaries explicitly convert RGB to BGR:
 

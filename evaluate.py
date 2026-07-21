@@ -10,6 +10,18 @@ import math
 import cv2
 
 
+def _to_luminance(img):
+    """Return a 2-D luminance image from a grayscale or RGB image."""
+    img = np.asarray(img)
+    if img.ndim == 2:
+        return img
+    if img.ndim == 3 and img.shape[2] == 3:
+        if img.dtype not in (np.uint8, np.float32):
+            img = np.clip(img, 0, 255).astype(np.uint8)
+        return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    raise ValueError(f"expected a 2-D image or RGB image; got {img.shape}")
+
+
 def psnr(img1, img2):
     """
     PSNR = 20 * log10(255 / sqrt(MSE))
@@ -32,6 +44,11 @@ def ssim(img1, img2):
     衡量结构相似度，范围 [0, 1]，越接近 1 越好。
     比 PSNR 更符合人眼感知。
     """
+    if img1.shape != img2.shape:
+        raise ValueError(f"SSIM images must have equal shapes: {img1.shape} != {img2.shape}")
+    if img1.ndim == 3 and img1.shape[2] == 3:
+        return np.mean([ssim(img1[..., c], img2[..., c]) for c in range(3)])
+
     i1 = img1.astype(np.float64)
     i2 = img2.astype(np.float64)
 
@@ -54,7 +71,7 @@ def ssim(img1, img2):
 
 def laplacian_sharpness(img):
     """拉普拉斯方差锐度评估，值越大越清晰。"""
-    import cv2
+    img = _to_luminance(img)
     if img.dtype != np.uint8:
         img = np.clip(img, 0, 255).astype(np.uint8)
     lap = cv2.Laplacian(img, cv2.CV_64F)
@@ -67,7 +84,7 @@ def tenengrad(img):
 
     值越大表示图像越清晰，常用于无参考图像质量评估。
     """
-    import cv2
+    img = _to_luminance(img)
     if img.dtype != np.uint8:
         img = np.clip(img, 0, 255).astype(np.uint8)
     gx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3)
@@ -84,6 +101,19 @@ def match_histogram(source, reference):
     在评估前做直方图匹配可以消除这种影响，
     更准确地衡量结构恢复效果。
     """
+    if source.shape != reference.shape:
+        raise ValueError(
+            f"histogram images must have equal shapes: {source.shape} != {reference.shape}"
+        )
+    if source.ndim == 3 and source.shape[2] == 3:
+        return np.stack(
+            [
+                match_histogram(source[..., c], reference[..., c])
+                for c in range(3)
+            ],
+            axis=2,
+        )
+
     src_hist = np.zeros(256, dtype=np.float64)
     ref_hist = np.zeros(256, dtype=np.float64)
 
@@ -170,6 +200,7 @@ def compare_sharpness(img_before, img_after):
 def total_variation(img):
     """TV norm: sum of abs(gradient). Ringing INCREASES TV.
     Good deblur: sharper WITHOUT large TV increase."""
+    img = _to_luminance(img)
     gx = np.diff(img.astype(np.float64), axis=1)
     gy = np.diff(img.astype(np.float64), axis=0)
     h, w = gx.shape[0], gy.shape[1]
@@ -181,6 +212,8 @@ def edge_strength_ratio(original, deblurred):
     Uses cv2.Sobel for correct pixel-aligned gradients.
     >1.5 = edges enhanced more than ringing (good)
     <1.0 = ringing dominates (bad)"""
+    original = _to_luminance(original)
+    deblurred = _to_luminance(deblurred)
     go = cv2.Sobel(original.astype(np.float64), cv2.CV_64F, 1, 0, ksize=3)
     go = np.sqrt(go**2 + cv2.Sobel(original.astype(np.float64), cv2.CV_64F, 0, 1, ksize=3)**2)
     gd = cv2.Sobel(deblurred.astype(np.float64), cv2.CV_64F, 1, 0, ksize=3)
@@ -197,6 +230,7 @@ def edge_strength_ratio(original, deblurred):
 
 def laplacian_variance(img):
     """Laplacian variance. Higher = sharper BUT also higher with ringing."""
+    img = _to_luminance(img)
     lap = cv2.Laplacian(img.astype(np.float64), cv2.CV_64F)
     return float(lap.var())
 
@@ -207,7 +241,7 @@ def image_stats(img):
     hist, _ = np.histogram(flat, bins=256, range=(0, 256))
     hist = hist / flat.size
     entropy = -np.sum(hist * np.log2(hist + 1e-10))
-    return {
+    result = {
         "mean": float(img.mean()),
         "std": float(img.std()),
         "min": int(img.min()),
@@ -215,6 +249,12 @@ def image_stats(img):
         "median": float(np.median(img)),
         "entropy": float(entropy),
     }
+    if img.ndim == 3 and img.shape[2] == 3:
+        result["channels"] = {
+            name: image_stats(img[..., channel])
+            for channel, name in enumerate(("R", "G", "B"))
+        }
+    return result
 
 
 def full_evaluate(original, processed):
