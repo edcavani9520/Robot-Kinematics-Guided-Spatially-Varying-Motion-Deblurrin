@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="assets/kg-deblur-cover.png" width="100%" alt="KG-DEBLUR: Kinematics-guided motion deblurring. A captured Kinova Gen3 wrist-camera frame is shown beside its Wiener restoration.">
+  <img src="assets/kg-deblur-cover.png" width="100%" alt="KG-DEBLUR cover. An exaggerated motion-blur illustration points to the actual Wiener restoration of the original Kinova Gen3 wrist-camera frame.">
 </p>
+<p align="center"><sub>左图经 AI 强化拖影，用于示意。右图为原始实拍帧的 Wiener 复原结果。</sub></p>
 
 # KG-DEBLUR
 
