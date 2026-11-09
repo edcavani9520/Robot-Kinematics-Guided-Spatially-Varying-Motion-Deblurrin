@@ -1,3 +1,5 @@
+<p align="center"><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
+
 <p align="center">
   <img src="assets/kg-deblur-cover.png" width="100%" alt="KG-DEBLUR cover. An exaggerated motion-blur illustration points to the actual Wiener restoration of the original Kinova Gen3 wrist-camera frame.">
 </p>
